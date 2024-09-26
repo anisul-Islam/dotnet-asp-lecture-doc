@@ -1,0 +1,19 @@
+@ecommerce_db_api_HostAddress = http://localhost:5234
+
+GET {{ecommerce_db_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+GET http://localhost:5234
+
+###
+
+POST http://localhost:5234/api/users 
+Content-Type: application/json
+
+{
+  "userName" : "anisul islam",
+  "Email" : "anisul2@gmail.com",
+  "Password" : "123456"
+}
