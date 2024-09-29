@@ -9,11 +9,45 @@ GET http://localhost:5234
 
 ###
 
+GET http://localhost:5234/api/users
+
+###
+
+GET http://localhost:5234/api/users/91d6557d-4623-43e1-9a5a-4e2b480b4d05
+
+###
+
+DELETE http://localhost:5234/api/users/cb8966c9-8331-43f2-b441-96aa48c5b88e
+
+###
+
 POST http://localhost:5234/api/users 
 Content-Type: application/json
 
 {
-  "userName" : "anisul islam",
-  "Email" : "anisul2@gmail.com",
+  "userName" : "test5",
+  "Email" : "test5@gmail.com",
   "Password" : "123456"
+}
+
+###
+
+PUT http://localhost:5234/api/users/c2dc333b-0a31-4c20-80c4-ee3644201c17 
+Content-Type: application/json
+
+{
+  "userName" : "alex"
+}
+
+###
+
+GET http://localhost:5234/api/categories
+
+###
+
+POST http://localhost:5234/api/categories 
+Content-Type: application/json
+
+{
+  "categoryName" : "manual2 devices"
 }

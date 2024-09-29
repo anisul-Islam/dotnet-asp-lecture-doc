@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddAutoMapper(typeof(Program));
+
 builder.Services.AddControllers()
 .ConfigureApiBehaviorOptions(options =>
 {
@@ -11,6 +13,7 @@ builder.Services.AddControllers()
 });
 builder.Services.AddControllers();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<CategoryService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>

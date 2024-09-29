@@ -12,8 +12,8 @@ using ecommerce_db_api.EFCore;
 namespace ecommerce_db_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240926091836_AddFluentAPI")]
-    partial class AddFluentAPI
+    [Migration("20240929064708_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
