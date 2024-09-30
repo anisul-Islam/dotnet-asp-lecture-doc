@@ -70,27 +70,27 @@ Apart from **Entity Framework Core (EF Core)**, there are several other ways to 
 
 - **ADO.NET** is a low-level, foundational data access technology for .NET. It provides a set of classes for accessing databases, executing SQL queries, and retrieving results. ADO.NET offers full control over database operations and is often used when developers need high performance or more direct control over SQL execution.
 
-  **Example:**
+   **Example:**
 
-  ```csharp
-  using (SqlConnection connection = new SqlConnection("YourConnectionString"))
-  {
-      SqlCommand command = new SqlCommand("SELECT * FROM Products", connection);
-      connection.Open();
-      SqlDataReader reader = command.ExecuteReader();
-      while (reader.Read())
-      {
-          Console.WriteLine($"{reader["Name"]} - {reader["Price"]}");
-      }
-  }
-  ```
+   ```csharp
+   using (SqlConnection connection = new SqlConnection("YourConnectionString"))
+   {
+       SqlCommand command = new SqlCommand("SELECT * FROM Products", connection);
+       connection.Open();
+       SqlDataReader reader = command.ExecuteReader();
+       while (reader.Read())
+       {
+           Console.WriteLine($"{reader["Name"]} - {reader["Price"]}");
+       }
+   }
+   ```
 
-  **Advantages:**
+   **Advantages:**
 
 - Full control over SQL and database operations.
 - Lightweight and high-performance for large-scale operations.
 
-  **Disadvantages:**
+   **Disadvantages:**
 
 - Requires manual handling of SQL queries, parameters, and result sets.
 - Higher risk of SQL injection if not handled properly.
@@ -99,26 +99,26 @@ Apart from **Entity Framework Core (EF Core)**, there are several other ways to 
 
 - **Dapper** is a popular micro ORM (Object-Relational Mapper) that simplifies data access by mapping objects to database tables, similar to EF Core, but with less abstraction. Dapper is lightweight and faster than EF Core because it doesn't do as much under the hood.
 
-  **Example:**
+   **Example:**
 
-  ```csharp
-  using (var connection = new SqlConnection("YourConnectionString"))
-  {
-      var products = connection.Query<Product>("SELECT * FROM Products").ToList();
-      foreach (var product in products)
-      {
-          Console.WriteLine($"{product.Name} - {product.Price}");
-      }
-  }
-  ```
+   ```csharp
+   using (var connection = new SqlConnection("YourConnectionString"))
+   {
+       var products = connection.Query<Product>("SELECT * FROM Products").ToList();
+       foreach (var product in products)
+       {
+           Console.WriteLine($"{product.Name} - {product.Price}");
+       }
+   }
+   ```
 
-  **Advantages:**
+   **Advantages:**
 
 - Lightweight and fast compared to full ORMs like EF Core.
 - Simple to use and integrate with existing SQL queries.
 - Less overhead, making it ideal for performance-sensitive applications.
 
-  **Disadvantages:**
+   **Disadvantages:**
 
 - Lacks some advanced features like change tracking and migrations found in EF Core.
 - Requires more manual SQL compared to EF Core.
@@ -127,29 +127,29 @@ Apart from **Entity Framework Core (EF Core)**, there are several other ways to 
 
 - **NHibernate** is a full-featured ORM for .NET, similar to EF Core. It provides rich functionality for mapping objects to database tables, but it tends to be more complex than EF Core.
 
-  **Example:**
+   **Example:**
 
-  ```csharp
-  using (ISession session = sessionFactory.OpenSession())
-  {
-      using (ITransaction transaction = session.BeginTransaction())
-      {
-          var products = session.Query<Product>().ToList();
-          foreach (var product in products)
-          {
-              Console.WriteLine($"{product.Name} - {product.Price}");
-          }
-          transaction.Commit();
-      }
-  }
-  ```
+   ```csharp
+   using (ISession session = sessionFactory.OpenSession())
+   {
+       using (ITransaction transaction = session.BeginTransaction())
+       {
+           var products = session.Query<Product>().ToList();
+           foreach (var product in products)
+           {
+               Console.WriteLine($"{product.Name} - {product.Price}");
+           }
+           transaction.Commit();
+       }
+   }
+   ```
 
-  **Advantages:**
+   **Advantages:**
 
 - Highly customizable and powerful ORM.
 - Supports advanced mapping features, caching, and lazy loading.
 
-  **Disadvantages:**
+   **Disadvantages:**
 
 - Complex to set up and use compared to simpler tools like Dapper or ADO.NET.
 - Slower performance than micro ORMs like Dapper.
@@ -158,25 +158,25 @@ Apart from **Entity Framework Core (EF Core)**, there are several other ways to 
 
 - **LINQ to SQL** is an ORM that was introduced in .NET 3.5. It provides a way to map classes to SQL Server tables using LINQ queries, but it's limited to SQL Server. LINQ to SQL is simpler than EF Core but also more limited in functionality.
 
-  **Example:**
+   **Example:**
 
-  ```csharp
-  using (var db = new DataContext("YourConnectionString"))
-  {
-      var products = db.GetTable<Product>().ToList();
-      foreach (var product in products)
-      {
-          Console.WriteLine($"{product.Name} - {product.Price}");
-      }
-  }
-  ```
+   ```csharp
+   using (var db = new DataContext("YourConnectionString"))
+   {
+       var products = db.GetTable<Product>().ToList();
+       foreach (var product in products)
+       {
+           Console.WriteLine($"{product.Name} - {product.Price}");
+       }
+   }
+   ```
 
-  **Advantages:**
+   **Advantages:**
 
 - Simple and easy-to-use ORM.
 - Integrates well with LINQ queries.
 
-  **Disadvantages:**
+   **Disadvantages:**
 
 - Limited to SQL Server.
 - Not as feature-rich as EF Core or NHibernate.
@@ -185,25 +185,25 @@ Apart from **Entity Framework Core (EF Core)**, there are several other ways to 
 
 - Micro ORMs are lightweight data access libraries that provide object mapping without the overhead of full ORMs like EF Core or NHibernate. They are designed to provide basic functionality (CRUD operations) without compromising performance.
 
-  **PetaPoco Example:**
+   **PetaPoco Example:**
 
-  ```csharp
-  using (var db = new Database("YourConnectionString"))
-  {
-      var products = db.Query<Product>("SELECT * FROM Products").ToList();
-      foreach (var product in products)
-      {
-          Console.WriteLine($"{product.Name} - {product.Price}");
-      }
-  }
-  ```
+   ```csharp
+   using (var db = new Database("YourConnectionString"))
+   {
+       var products = db.Query<Product>("SELECT * FROM Products").ToList();
+       foreach (var product in products)
+       {
+           Console.WriteLine($"{product.Name} - {product.Price}");
+       }
+   }
+   ```
 
-  **Advantages:**
+   **Advantages:**
 
 - Lightweight and fast.
 - Less complex than full ORMs.
 
-  **Disadvantages:**
+   **Disadvantages:**
 
 - Fewer features than full ORMs (no change tracking, migrations, etc.).
 
@@ -211,28 +211,28 @@ Apart from **Entity Framework Core (EF Core)**, there are several other ways to 
 
 - You can execute raw SQL queries directly in .NET without using any ORM. This gives full control over the database but requires manual query building, parameterization, and result mapping.
 
-  **Example:**
+   **Example:**
 
-  ```csharp
-  using (SqlConnection connection = new SqlConnection("YourConnectionString"))
-  {
-      SqlCommand command = new SqlCommand("SELECT * FROM Products WHERE Price > @price", connection);
-      command.Parameters.AddWithValue("@price", 100);
-      connection.Open();
-      SqlDataReader reader = command.ExecuteReader();
-      while (reader.Read())
-      {
-          Console.WriteLine($"{reader["Name"]} - {reader["Price"]}");
-      }
-  }
-  ```
+   ```csharp
+   using (SqlConnection connection = new SqlConnection("YourConnectionString"))
+   {
+       SqlCommand command = new SqlCommand("SELECT * FROM Products WHERE Price > @price", connection);
+       command.Parameters.AddWithValue("@price", 100);
+       connection.Open();
+       SqlDataReader reader = command.ExecuteReader();
+       while (reader.Read())
+       {
+           Console.WriteLine($"{reader["Name"]} - {reader["Price"]}");
+       }
+   }
+   ```
 
-  **Advantages:**
+   **Advantages:**
 
 - Full control over SQL queries and database operations.
 - No abstraction, making it ideal for complex queries.
 
-  **Disadvantages:**
+   **Disadvantages:**
 
 - Higher risk of errors and security issues (e.g., SQL injection) if not handled correctly.
 - Manual mapping of results to objects.
@@ -253,7 +253,6 @@ dotnet add package Swashbuckle.AspNetCore --version 6.2.3
 ```
 
 1. **`Npgsql.EntityFrameworkCore.PostgreSQL`**:
-
    - Provides PostgreSQL database provider for EF Core, enabling you to interact with PostgreSQL databases.
    - Install Command:
 
@@ -262,7 +261,6 @@ dotnet add package Swashbuckle.AspNetCore --version 6.2.3
      ```
 
 2. **`Microsoft.EntityFrameworkCore.Design`**:
-
    - Required for design-time tools such as `dotnet ef` commands (migrations, scaffolding).
    - Install Command:
 
@@ -271,7 +269,6 @@ dotnet add package Swashbuckle.AspNetCore --version 6.2.3
      ```
 
 3. **`Microsoft.EntityFrameworkCore.Tools`**:
-
    - Provides command-line tools for EF Core commands (e.g., migrations).
    - Install Command:
 
@@ -280,7 +277,6 @@ dotnet add package Swashbuckle.AspNetCore --version 6.2.3
      ```
 
 4. **`Microsoft.Extensions.Configuration`** (already included in ASP.NET Core projects):
-
    - This library is used for loading configurations from `appsettings.json`, environment variables, etc., which is needed for database connection strings.
    - Usually, you don’t need to explicitly install it, but if needed:
 
@@ -291,7 +287,6 @@ dotnet add package Swashbuckle.AspNetCore --version 6.2.3
 #### Dependencies for API and Swagger Support
 
 5. **`Swashbuckle.AspNetCore`**:
-
    - Provides tools to generate Swagger documentation for your API.
    - Install Command:
 
@@ -300,7 +295,6 @@ dotnet add package Swashbuckle.AspNetCore --version 6.2.3
      ```
 
 6. **`Microsoft.AspNetCore.OData`**:
-
    - Adds support for OData in ASP.NET Core Web APIs.
    - Install Command:
 
@@ -309,7 +303,6 @@ dotnet add package Swashbuckle.AspNetCore --version 6.2.3
      ```
 
 7. **`Microsoft.AspNetCore.Mvc.NewtonsoftJson`**:
-
    - Adds support for using Newtonsoft.Json in ASP.NET Core for JSON serialization and deserialization.
    - Install Command:
 
@@ -320,7 +313,6 @@ dotnet add package Swashbuckle.AspNetCore --version 6.2.3
 #### Additional Dependencies (if required)
 
 8. **`dotnet-ef` (tool)**:
-
    - Command-line tool used to create migrations, update the database schema, and scaffold models.
    - Install Command:
 
@@ -337,26 +329,26 @@ dotnet add package Swashbuckle.AspNetCore --version 6.2.3
   In Entity Framework Core (EF Core), a DbContext is a crucial component because it acts as a bridge between your application and the database. It represents a session with the database and is used to query and save data. Creating a DbContext is necessary for several reasons:
 
   1. Managing Database Connections:
-     The DbContext manages the connection to the database. It opens and closes the connection as needed when querying or saving data. You don't have to manually handle database connections in your code, as the DbContext does it for you, making the process simpler and less error-prone.
+  The DbContext manages the connection to the database. It opens and closes the connection as needed when querying or saving data. You don't have to manually handle database connections in your code, as the DbContext does it for you, making the process simpler and less error-prone.
 
   2. Mapping Entities to Database Tables (Object Relational Mapper = ORM):
-     The DbContext allows you to define how your C# classes (entities) map to database tables, columns, and relationships. This mapping is essential because Entity Framework Core is an Object-Relational Mapper (ORM), which means it converts C# objects into database records and vice versa.
+  The DbContext allows you to define how your C# classes (entities) map to database tables, columns, and relationships. This mapping is essential because Entity Framework Core is an Object-Relational Mapper (ORM), which means it converts C# objects into database records and vice versa.
 
 #### Create the DbContext
 
-```csharp
-// EFCore/AppDbContext.cs
-  using System;
-  using System.Collections.Generic;
-  using System.Linq;
-  using System.Threading.Tasks;
-  using Microsoft.EntityFrameworkCore;
+  ```csharp
+  // EFCore/AppDbContext.cs
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Microsoft.EntityFrameworkCore;
 
-  public class AppDbContext : DbContext
-  {
-      public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-  }
-```
+    public class AppDbContext : DbContext
+    {
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    }
+  ```
 
 #### Configure the Database
 
@@ -380,9 +372,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 dotnet ef migrations add InitialCreate
 
 # Run the Migration and Update the Database:
-dotnet ef database update;
+dotnet ef database update; 
 
-# if you wish to undo this action use
+# if you wish to undo this action use 
 dotnet ef migrations remove
 ```
 
@@ -448,9 +440,9 @@ Here's a list of commonly used Entity Framework Core migration commands:
 
 10. **Generating a Migration for a Specific Project**: Create a migration for a specific project within a solution.
 
-```
-dotnet ef migrations add <NameOfMigration> --project <ProjectName>
-```
+   ```
+   dotnet ef migrations add <NameOfMigration> --project <ProjectName>
+   ```
 
 #### Add UUID
 
@@ -562,12 +554,11 @@ public class User
 #### 5.4 POST => /api/users => Create an user
 
 - Few methods for CRUD
-
   - Find all data => context.TableName.ToListAsync()
   - Find data => context.TableName.FindAsync(identidier);
   - Save data => context.TableName.AddAsync(newData); context.TableName.SaveChangesAsync();
   - Remove data => context.TableName.Remove(dataToBeDeleted); context.TableName.SaveChangesAsync();
-  - Update data => context.TableName.Update(data); context.TableName.SaveChangesAsync();
+  - Update data =>  context.TableName.Update(data); context.TableName.SaveChangesAsync();
 
 - workflow of MVC
 
@@ -674,7 +665,7 @@ namespace review_ecommerce_api.Models
 
 // Update the UserService.cs
   public async Task<UserDto> CreateUserAsync(CreateUserDto newUserDto)
-{
+{ 
 
  // Hash the password using a library like BCrypt.Net
     var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newUserDto.Password);
@@ -716,38 +707,36 @@ Data Annotations and Fluent API are both used in Entity Framework Core (EF Core)
 - **How it works:** Data Annotations are placed directly on the properties of the entity class. They handle validation before the database interaction, and if the data doesn't meet the criteria, an exception will be raised when saving the changes to the database.
 - **Example:**
 
-  ```csharp
-  public class User
+     ```csharp
+    public class User
 
-  {
-     [Required]
-     [EmailAddress]
-     [StringLength(100)]
-     [Column(TypeName = "varchar(100)")]
-     public string Email { get; set; }
-  }
-  ```
+    {
+        [Required]
+        [EmailAddress]
+        [StringLength(100)]
+        [Column(TypeName = "varchar(100)")]
+        public string Email { get; set; }
+    }
+     ```
 
 - **Exception Handling in Data Annotations:**
-
   - **Where:** Validation is done before changes are sent to the database (client-side). If an entity violates a rule, `ValidationException` will be raised before interacting with the database, and no database query will be executed.
   - **Exception Example:**
 
-    ```csharp
-     var user = new User { Email = "not-an-email"};
-     _context.Users.Add(user);
-     try
-     {
-         _context.SaveChanges();
-     }
-     catch (ValidationException ex)
-     {
-         Console.WriteLine(ex.Message); // Handles Data Annotation validation failure
-     }
-    ```
+       ```csharp
+        var user = new User { Email = "not-an-email"}; 
+        _context.Users.Add(user);
+        try
+        {
+            _context.SaveChanges();
+        }
+        catch (ValidationException ex)
+        {
+            Console.WriteLine(ex.Message); // Handles Data Annotation validation failure
+        }
+       ```
 
 - **Advantages:**
-
   - Easier to use, especially for simple validations like `Required`, `StringLength`, `Range`, etc.
   - Validation occurs at the model level, simplifying form validations.
 
@@ -761,40 +750,38 @@ Data Annotations and Fluent API are both used in Entity Framework Core (EF Core)
 - **How it works:** Fluent API is defined in the `OnModelCreating` method of the `DbContext` class, providing a more granular control over how entities are mapped to the database schema.
 - **Example:**
 
-  ```csharp
-     protected override void OnModelCreating(ModelBuilder modelBuilder)
+     ```csharp
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
 
-     {
-         modelBuilder.Entity<User>(entity =>
-         {
-             // Configuring the Email property using Fluent API
-             entity.Property(e => e.Email)
-                 .IsRequired() // Equivalent to [Required]
-                 .HasMaxLength(100) // Equivalent to [StringLength(100)]
-                 .HasColumnType("varchar(100)") // Equivalent to [Column(TypeName = "varchar(100)")]
-                 .HasAnnotation("EmailAddress", true); // Email validation, this can be custom and part of validation logic.
-         });
-     }
-  ```
+        {
+            modelBuilder.Entity<User>(entity =>
+            {
+                // Configuring the Email property using Fluent API
+                entity.Property(e => e.Email)
+                    .IsRequired() // Equivalent to [Required]
+                    .HasMaxLength(100) // Equivalent to [StringLength(100)]
+                    .HasColumnType("varchar(100)") // Equivalent to [Column(TypeName = "varchar(100)")]
+                    .HasAnnotation("EmailAddress", true); // Email validation, this can be custom and part of validation logic.
+            });
+        }
+     ```
 
 - **Exception Handling in Fluent API:**
-
   - **Where:** Fluent API configurations are enforced when EF Core interacts with the database (server-side). Unlike Data Annotations, these configurations apply at the database level, and exceptions such as `DbUpdateException` will be thrown during `SaveChanges()` when the rules are violated.
   - **Exception Example:**
 
-    ```csharp
-    try
-    {
-        _context.SaveChanges();
-    }
-    catch (DbUpdateException ex)
-    {
-        Console.WriteLine(ex.Message); // Handles Fluent API rule violations (like duplicate key, etc.)
-    }
-    ```
+       ```csharp
+       try
+       {
+           _context.SaveChanges();
+       }
+       catch (DbUpdateException ex)
+       {
+           Console.WriteLine(ex.Message); // Handles Fluent API rule violations (like duplicate key, etc.)
+       }
+       ```
 
 - **Advantages:**
-
   - More flexible and powerful for handling complex relationships, unique constraints, table splitting, and other advanced configurations.
   - Fluent API configurations are centralized in one place (inside `OnModelCreating`), making it easier to manage changes across the entire application.
 
@@ -804,14 +791,14 @@ Data Annotations and Fluent API are both used in Entity Framework Core (EF Core)
 
 ##### **Key Differences:**
 
-| **Aspect**                 | **Data Annotations**                                                   | **Fluent API**                                                    |
-| -------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| **Configuration Location** | Applied directly to the model properties using attributes.             | Configured centrally inside `OnModelCreating` in `DbContext`.     |
-| **Complexity**             | Simple to use for basic configurations and validations.                | Suitable for complex configurations and relationships.            |
-| **Scope of Application**   | Works at the **model** level and applies rules at **compile time**.    | Works at the **database** level and applies rules at **runtime**. |
-| **Exception Handling**     | Throws `ValidationException` before interacting with the database.     | Throws `DbUpdateException` when saving to the database.           |
-| **Flexibility**            | Limited in terms of complex configurations (e.g., unique constraints). | Full flexibility to define more advanced configurations.          |
-| **Validation Location**    | Mostly client-side, before interaction with the database.              | Mostly server-side, enforced during database operations.          |
+| **Aspect**                | **Data Annotations**                                       | **Fluent API**                                              |
+|---------------------------|------------------------------------------------------------|-------------------------------------------------------------|
+| **Configuration Location** | Applied directly to the model properties using attributes. | Configured centrally inside `OnModelCreating` in `DbContext`.|
+| **Complexity**             | Simple to use for basic configurations and validations.    | Suitable for complex configurations and relationships.       |
+| **Scope of Application**   | Works at the **model** level and applies rules at **compile time**. | Works at the **database** level and applies rules at **runtime**.|
+| **Exception Handling**     | Throws `ValidationException` before interacting with the database. | Throws `DbUpdateException` when saving to the database.       |
+| **Flexibility**            | Limited in terms of complex configurations (e.g., unique constraints). | Full flexibility to define more advanced configurations.      |
+| **Validation Location**    | Mostly client-side, before interaction with the database.   | Mostly server-side, enforced during database operations.      |
 
 ##### **Which One to Use?**
 
@@ -882,11 +869,11 @@ namespace review_ecommerce_api.Models
           return BadRequest(new { Message = "Validation failed", Errors = errors });
       }
 
-
+     
       var user = await _userService.CreateUserAsync(newUser);
       var response = new { Message = "User created successfully", User = user };
       return Created($"/api/users/{user.UserId}", response);
-
+     
   }
 
 ```
@@ -920,7 +907,7 @@ namespace review_ecommerce_api.Models
 {
     public class CreateUserDto
     {
-
+       
         public string UserName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email is required.")]
@@ -1020,7 +1007,7 @@ namespace review_ecommerce_api.Models
 
           await _appDbContext.Users.AddAsync(user);
           await _appDbContext.SaveChangesAsync();
-
+          
           var userResponse = new UserDto
               {
                   UserId = user.UserId,
@@ -1769,11 +1756,11 @@ Benfits of AutoMapper
 7. Support for Nested Objects
    AutoMapper can automatically handle nested objects and collections, which can be complex to map manually. It knows how to traverse these structures and map corresponding elements from source to destination.
 
-- Install the AutoMapper `dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection`
+- Install the AutoMapper  `dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection`
 
 #### 5.19 Use AutoMapper everywhere
 
-- Step 1: Install the AutoMapper `dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection`
+- Step 1: Install the AutoMapper  `dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection`
 
 - Step 2: Setup AutoMapper `builder.Services.AddAutoMapper(typeof(Program));`
 
@@ -1798,7 +1785,7 @@ namespace review_ecommerce_api.Mappers
             CreateMap<User, UserDto>().RevereseMap();
             // Category Mapping
             // CreateMap<Category, CategoryDto>().ReverseMap();
-
+        
             // Product Mapping
             //CreateMap<Product, ProductDto>().ReverseMap();
             CreateMap<CreateUserDto, User>();
@@ -1822,7 +1809,7 @@ public UserService(AppDbContext appDbContext, IMapper mapper)
     _appDbContext = appDbContext;
     _mapper = mapper;
 }
-```
+````
 
 - step 5: ready to use AutoMapper in services
 
@@ -2055,6 +2042,7 @@ namespace review_ecommerce_api.Services
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace review_ecommerce_api.EFCore
@@ -2067,8 +2055,8 @@ namespace review_ecommerce_api.EFCore
         public string Description { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // One-to-Many: A category has many products
-        public List<Product> Products { get; set; } = new List<Product>();
+        [JsonIgnore] // Prevent serialization of Category to avoid circular reference
+        public List<Product> Products { get; set; }  // Many-to-many with Product
     }
 }
 
@@ -2076,6 +2064,7 @@ namespace review_ecommerce_api.EFCore
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace review_ecommerce_api.EFCore
@@ -2091,14 +2080,17 @@ namespace review_ecommerce_api.EFCore
         public int Quantity { get; set; } = 0;
         public int Sold { get; set; } = 0;
         public decimal Shipping { get; set; } = 0;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public int CategoryId { get; set; }  // Foreign Key for the Category
-        public Category Category { get; set; } = new Category(); // Navigation property
+        public Guid CategoryId { get; set; }  // Foreign Key for the Category
+
+        [JsonIgnore] // Prevent serialization of Category to avoid circular reference
+        public Category Category { get; set; } // Navigation property
 
         // public int OrderId { get; set; }  // Foreign key
         // public Order Order { get; set; } = new Order();  // Navigation property
+        // public List<Category> Categories { get; set; } = new List<Category>();  // Many-to-many with Category
 
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
 ```
@@ -2138,24 +2130,28 @@ namespace review_ecommerce_api.EFCore
             });
 
             modelBuilder.Entity<Category>(entity =>
+           {
+               entity.HasKey(c => c.CategoryId); // Primary Key
+               entity.Property(c => c.CategoryId).HasDefaultValueSql("uuid_generate_v4()");
+               entity.Property(c => c.Name).IsRequired().HasMaxLength(100);
+               entity.HasIndex(c => c.Name).IsUnique();
+               entity.Property(u => u.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+           });
+
+            modelBuilder.Entity<Product>(entity =>
             {
-                entity.HasKey(c => c.CategoryId); // Primary Key
-                entity.Property(c => c.CategoryId).HasDefaultValueSql("uuid_generate_v4()");
-                entity.Property(c => c.Name).IsRequired().HasMaxLength(100);
-                entity.HasIndex(c => c.Name).IsUnique();
-                entity.Property(u => u.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.HasKey(p => p.ProductId); // Primary Key
+                entity.Property(p => p.ProductId).HasDefaultValueSql("uuid_generate_v4()");
+                entity.Property(p => p.Name).IsRequired().HasMaxLength(255);
+                entity.HasIndex(p => p.Name).IsUnique();
+                entity.Property(p => p.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
-          modelBuilder.Entity<Product>(entity =>
-          {
-              entity.HasKey(p => p.ProductId); // Primary Key
-              entity.Property(p => p.ProductId).HasDefaultValueSql("uuid_generate_v4()");
-              entity.Property(p => p.Name).IsRequired().HasMaxLength(255);
-              entity.HasIndex(p => p.Name).IsUnique();
-              entity.Property(p => p.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-          });
-
-
+            modelBuilder.Entity<Category>()
+            .HasMany(c => c.Products)
+            .WithOne(p => p.Category)
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);// optional
         }
     }
 }
@@ -2844,18 +2840,18 @@ namespace review_ecommerce_api.Models.products
     public class ProductDto
     {
         public Guid ProductId { get; set; }
-        public string? Name { get; set; }
+        public string? Name { get; set; } 
         public string? Slug { get; set; }
-        public string? Image { get; set; }
-        public string? Description { get; set; }
+        public string? Image { get; set; } 
+        public string? Description { get; set; } 
         public decimal Price { get; set; }
         public int Quantity { get; set; }
-        public int Sold { get; set; }
+        public int Sold { get; set; } 
         public decimal Shipping { get; set; }
 
-        public int CategoryId { get; set; }
-        public Category? Category { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public int CategoryId { get; set; }  
+        public Category? Category { get; set; }     
+        public DateTime CreatedAt { get; set; } 
     }
 }
 
@@ -2878,7 +2874,50 @@ CreateMap<Product, ProductDto>();
 - Create and add the Service to Program.cs
 
 ```csharp
+ public async Task<ProductDto> CreateProductAsync(CreateProductDto newProduct)
+  {
 
+      try
+      {
+          // Check if the CategoryId provided exists in the database
+          var category = await _appDbContext.Categories.FindAsync(newProduct.CategoryId);
+
+          if (category == null)
+          {
+              throw new ApplicationException("The specified category does not exist.");
+          }
+
+          // Map the DTO to the Product entity
+          var product = _mapper.Map<Product>(newProduct);
+          product.Slug = Helper.GenerateSlug(newProduct.Name);
+
+          // Add the new product to the database
+          await _appDbContext.Products.AddAsync(product);
+          await _appDbContext.SaveChangesAsync();
+
+
+          // Map the created product entity back to ProductDto and return
+          return _mapper.Map<ProductDto>(product);
+      }
+      catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException postgresException)
+      {
+          if (postgresException.SqlState == "23505") // PostgreSQL unique constraint violation
+          {
+              throw new ApplicationException("Duplicate Product Name. Please use a unique product name.");
+          }
+          else
+          {
+              // Handle other database-related errors
+              throw new ApplicationException("An error occurred while adding the user.");
+          }
+      }
+      catch (Exception ex)
+      {
+          // Handle any other unexpected exceptions
+          Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+          throw new ApplicationException("An unexpected error occurred. Please try again later.");
+      }
+  }
 ```
 
 - test the endpoint with the follwing data
@@ -3012,22 +3051,219 @@ CreateMap<Product, ProductDto>();
 
   ```
 
-#### 6.9 GET Products
+#### 6.9 GET => api/products => Get all the products
 
 ```csharp
-[HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
+// Controller
+  // GET => /api/users => Get all the users
+  [HttpGet]
+  public async Task<IActionResult> GetProducts([FromQuery] QueryParameters queryParameters)
+  {
+      try
+      {
+          var products = await _productService.GetProductsAsync(queryParameters);
+          return ApiResponse.Success(products);
+      }
+      catch (ApplicationException ex)
+      {
+          return ApiResponse.ServerError(ex.Message);
+      }
+      catch (Exception ex)
+      {
+          Console.WriteLine($"Exception : {ex.Message}");
+          return ApiResponse.ServerError("An unexpected error occurred.");
+      }
+  }
+
+// Service
+ public async Task<PaginatedResult<ProductDto>> GetProductsAsync(QueryParameters queryParameters)
+  {
+      try
+      {
+          var query = _appDbContext.Products.Include(p => p.Category).AsQueryable();
+
+          // Search based on name or email
+          if (!string.IsNullOrEmpty(queryParameters.SearchTerm))
+          {
+              var lowerCaseSearchTerm = queryParameters.SearchTerm.ToLower();
+              query = query.Where(u => u.Name.ToLower().Contains(lowerCaseSearchTerm));
+          }
+
+          // Sorting (working)
+          switch (queryParameters.SortBy?.ToLower())
+          {
+              case "Name":
+                  query = queryParameters.SortOrder.ToLower() == "desc"
+                      ? query.OrderByDescending(p => p.Name)
+                      : query.OrderBy(p => p.Name);
+                  break;
+              case "CreatedAt":
+                  query = queryParameters.SortOrder.ToLower() == "desc"
+                      ? query.OrderByDescending(p => p.CreatedAt)
+                      : query.OrderBy(p => p.CreatedAt);
+                  break;
+
+              // Add other sortable fields if necessary
+              default:
+                  query = query.OrderBy(p => p.Name); // Default sorting
+                  break;
+          }
+
+
+          // Calculate the total count of users (after filtering)
+          var totalCount = await query.CountAsync();
+
+          // Ensure pageNumber and pageSize are valid
+          if (queryParameters.PageNumber < 1) queryParameters.PageNumber = 1;
+          if (queryParameters.PageSize < 1) queryParameters.PageSize = 10;
+
+          // Fetch paginated categories data
+          var products = await query
+              .Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize) // Skip to the correct page
+              .Take(queryParameters.PageSize)                    // Take the correct page size
+              .ToListAsync();
+
+          // Map the fetched users to UserDto
+          var productsDto = _mapper.Map<List<ProductDto>>(products);
+
+          // Return paginated result
+          return new PaginatedResult<ProductDto>
+          {
+              Items = productsDto,                   // Return DTOs, not entities
+              TotalCount = totalCount,
+              PageNumber = queryParameters.PageNumber,
+              PageSize = queryParameters.PageSize
+          };
+      }
+      catch (Exception ex)
+      {
+          // Handle any other unexpected exceptions
+          Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+          throw new ApplicationException("An unexpected error occurred. Please try again later." + ex.Message);
+      }
+  }
+```
+
+#### 6.10 GET => api/products/{productId} => Get a single product
+
+```csharp
+// Controller
+// GET => /api/products/{productId} => Get a single product by Id
+[HttpGet("{productIdOrSlug}")]
+public async Task<IActionResult> GetProducts(string productIdOrSlug)
+{
+    try
     {
-        var products = await _context.Products.Include(p => p.Category).ToListAsync();
-        return Ok(_mapper.Map<IEnumerable<ProductDto>>(products));
+        var product = await _productService.GetProductByIdOrSlug(productIdOrSlug);
+        if (product == null)
+        {
+            return ApiResponse.NotFound("Product not found");
+        }
+        return ApiResponse.Success(product, "Product Retrived successfully");
     }
+    catch (ApplicationException ex)
+    {
+        return ApiResponse.ServerError(ex.Message);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Exception : {ex.Message}");
+        return ApiResponse.ServerError("An unexpected error occurred.");
+    }
+}
+
+// Service
+ public async Task<ProductDto?> GetProductByIdOrSlug(string slugOrId)
+  {
+      try
+      {
+          Product? product;
+
+          // Check if the slugOrId is a valid Guid, meaning it's an ID.
+          if (Guid.TryParse(slugOrId, out var productId))
+          {
+              product = await _appDbContext.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.ProductId == productId);
+          }
+          else
+          {
+              // Otherwise, assume it's a slug and search by slug
+              product = await _appDbContext.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Slug == slugOrId);
+          }
+
+          if (product == null)
+          {
+              return null;
+          }
+
+          var productData = _mapper.Map<ProductDto>(product);
+
+          // Return null if user not found, otherwise return the user
+          return productData;
+      }
+      catch (Exception ex)
+      {
+          // Handle any other unexpected exceptions
+          Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+          throw new ApplicationException("An unexpected error occurred. Please try again later." + ex.Message);
+      }
+  }
+
 ```
 
 ### 7 Profile API
 
+- define the entity
+
+```csharp
+public class User
+{
+    public Guid UserId { get; set; }
+    // ....
+
+    // Navigation property
+    public Profile Profile { get; set; }
+}
+
+public class Profile
+{
+    public Guid Id { get; set; }
+    // public string Address { get; set; }
+    public string PhoneNumber { get; set; }
+
+    // Foreign key
+    public Guid UserId { get; set; }
+
+    // Navigation property
+    public User User { get; set; }
+}
+```
+
+- update the context
+
+```csharp
+
+// DbSet properties
+
+public DbSet<Profile> Profiles { get; set; }
+
+    // One-to-One: User <-> Profile
+    modelBuilder.Entity<User>()
+        .HasOne(u => u.Profile)
+        .WithOne(p => p.User)
+        .HasForeignKey<Profile>(p => p.UserId);
+```
+
+#### Get Profile
+
+#### Create Profile
+
+#### Delete Profile
+
+#### Update Profile
+
 ### 8 Order API
 
-### (ADD SOMEWHERE) try to insert data in pgadmin
+### (ADD SOMEWHERE)  try to insert data in pgadmin
 
 ```sql
 INSERT INTO "Users" ("UserId", "Name", "Email", "Password", "Address", "Image", "IsAdmin", "IsBanned", "CreatedAt")
