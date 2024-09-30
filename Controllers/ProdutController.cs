@@ -3,35 +3,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ecommerce_db_api.Models;
+using ecommerce_db_api.Models.products;
 using ecommerce_db_api.Services;
 using ecommerce_db_api.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ecommerce_db_api.Controllers
 {
-    [ApiController, Route("/api/categories")]
+    [ApiController, Route("/api/products")]
 
-    public class CategoryController : ControllerBase
+    public class ProductController : ControllerBase
     {
-        private readonly CategoryService _categoryService;
-        public CategoryController(CategoryService categoryService)
+        private readonly ProductService _productService;
+        public ProductController(ProductService productService)
         {
-            _categoryService = categoryService;
+            _productService = productService;
         }
 
 
-        // POST => /api/categories => Create a category
+        // POST => /api/users => Create an User
         [HttpPost]
-        public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto newCategory)
+        public async Task<IActionResult> CreateProduct([FromBody] CreateProdutDto newProduct)
         {
             if (!ModelState.IsValid)
             {
-                return ApiResponse.BadRequest("Invalid category Data");
+                return ApiResponse.BadRequest("Invalid product Data");
             }
             try
             {
-                var category = await _categoryService.CreateCategoryServiceAsync(newCategory);
-                return ApiResponse.Created(category, "Category is created");
+                var product = await _productService.CreateProductServiceAsync(newProduct);
+                return ApiResponse.Created(product, "Product is created");
             }
             catch (ApplicationException ex)
             {
@@ -43,26 +44,26 @@ namespace ecommerce_db_api.Controllers
             }
         }
 
-        // GET => /api/categories => RETURN all the Categories
-        [HttpGet]
-        public async Task<IActionResult> GetCategories()
-        {
-            try
-            {
-                var categories = await _categoryService.GetCategoryServiceAsync();
-                return ApiResponse.Success(categories, "Categories are returned succesfully");
-            }
-            catch (ApplicationException ex)
-            {
-                return ApiResponse.ServerError("Server error: " + ex.Message);
-            }
-            catch (System.Exception ex)
-            {
-                return ApiResponse.ServerError("Server error: " + ex.Message);
-            }
-        }
+        // // GET => /api/users => RETURN all the Users
+        // [HttpGet]
+        // public async Task<IActionResult> GetUsers()
+        // {
+        //     try
+        //     {
+        //         var users = await _userService.GetUsersServiceAsync();
+        //         return ApiResponse.Success(users, "Users are returned succesfully");
+        //     }
+        //     catch (ApplicationException ex)
+        //     {
+        //         return ApiResponse.ServerError("Server error: " + ex.Message);
+        //     }
+        //     catch (System.Exception ex)
+        //     {
+        //         return ApiResponse.ServerError("Server error: " + ex.Message);
+        //     }
+        // }
 
-        // // // GET => /api/users/{userId} => return a single User
+        // // GET => /api/users/{userId} => return a single User
         // [HttpGet("{userId}")]
         // public async Task<IActionResult> GetUser(Guid userId)
         // {

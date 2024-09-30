@@ -7,34 +7,38 @@ using AutoMapper;
 using ecommerce_db_api.EFCore;
 using ecommerce_db_api.Models;
 using ecommerce_db_api.Models.categories;
+using ecommerce_db_api.Models.products;
 using Microsoft.EntityFrameworkCore;
 
 namespace ecommerce_db_api.Services
 {
-    public class CategoryService
+    public class ProductService
     {
         private readonly AppDbContext _appDbContext;
         private readonly IMapper _mapper;
 
-        public CategoryService(AppDbContext appDbContext, IMapper mapper)
+        public ProductService(AppDbContext appDbContext, IMapper mapper)
         {
             _appDbContext = appDbContext;
             _mapper = mapper;
         }
 
-        public async Task<Category> CreateCategoryServiceAsync(CreateCategoryDto newCategory)
+        public async Task<ProductDto> CreateProductServiceAsync(CreateProdutDto newProduct)
         {
             try
             {
+                Console.WriteLine($"---------Test1-------------");
+                var product = _mapper.Map<Product>(newProduct);
+                await _appDbContext.Products.AddAsync(product);
+                Console.WriteLine($"---------Test2-------------");
 
-                // create the slug here 
-                var slug = newCategory.Name.Replace(" ", "-");
-                newCategory.Slug = slug;
-
-                var category = _mapper.Map<Category>(newCategory);
-                await _appDbContext.AddAsync(category);
                 await _appDbContext.SaveChangesAsync();
-                return category;
+                Console.WriteLine($"---------Test3-------------");
+
+
+                // product entity here => Product Dto 
+                var productData = _mapper.Map<ProductDto>(product);
+                return productData;
             }
             catch (DbUpdateException dbEx)
             {
@@ -50,29 +54,29 @@ namespace ecommerce_db_api.Services
             }
         }
 
-        public async Task<List<CategoryDto>> GetCategoryServiceAsync()
-        {
-            try
-            {
-                var categories = await _appDbContext.Categories.ToListAsync();
-                var categoriesData = _mapper.Map<List<CategoryDto>>(categories);
-                return categoriesData;
-            }
-            catch (DbUpdateException dbEx)
-            {
-                // Handle database update exceptions (like unique constraint violations)
-                Console.WriteLine($"Database Update Error: {dbEx.Message}");
-                throw new ApplicationException("An error occurred while saving to the database. Please check the data and try again.");
-            }
-            catch (Exception ex)
-            {
-                // Handle any other unexpected exceptions
-                Console.WriteLine($"An unexpected error occurred: {ex.Message}");
-                throw new ApplicationException("An unexpected error occurred. Please try again later.");
-            }
-        }
+        // public async Task<List<CategoryDto>> GetCategoryServiceAsync()
+        // {
+        //     try
+        //     {
+        //         var categories = await _appDbContext.Categories.ToListAsync();
+        //         var categoriesData = _mapper.Map<List<CategoryDto>>(categories);
+        //         return categoriesData;
+        //     }
+        //     catch (DbUpdateException dbEx)
+        //     {
+        //         // Handle database update exceptions (like unique constraint violations)
+        //         Console.WriteLine($"Database Update Error: {dbEx.Message}");
+        //         throw new ApplicationException("An error occurred while saving to the database. Please check the data and try again.");
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         // Handle any other unexpected exceptions
+        //         Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+        //         throw new ApplicationException("An unexpected error occurred. Please try again later.");
+        //     }
+        // }
 
-        // public async Task<UserDto?> GetUserServiceByIdAsync(Guid userId)
+        // // public async Task<UserDto?> GetUserServiceByIdAsync(Guid userId)
         // {
         //     try
         //     {

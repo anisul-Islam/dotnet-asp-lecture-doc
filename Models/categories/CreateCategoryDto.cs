@@ -11,7 +11,7 @@ namespace ecommerce_db_api.Models
 
         [Required(ErrorMessage = "CategoryName is missing.")]
         [StringLength(100, ErrorMessage = "CategoryName must be between 3 and 100 characters.", MinimumLength = 3)]
-        public string CategoryName { get; set; }
+        public string Name { get; set; }
         public string? Slug { get; set; }
 
     }

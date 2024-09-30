@@ -12,6 +12,7 @@ namespace ecommerce_db_api.EFCore
 
         public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Product> Products { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,10 +34,18 @@ namespace ecommerce_db_api.EFCore
             {
                 entity.HasKey(category => category.CategoryId); // Primary Key configuration
                 entity.Property(category => category.CategoryId).HasDefaultValueSql("uuid_generate_v4()"); // Generate UUID for new records
-                entity.Property(category => category.CategoryName).IsRequired().HasMaxLength(100);
-                entity.HasIndex(category => category.CategoryName).IsUnique();
+                entity.Property(category => category.Name).IsRequired().HasMaxLength(100);
+                entity.HasIndex(category => category.Name).IsUnique();
                 entity.Property(category => category.Slug).IsRequired().HasMaxLength(100);
                 entity.Property(category => category.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.HasKey(p => p.ProductId); // Primary Key
+                entity.Property(p => p.ProductId).HasDefaultValueSql("uuid_generate_v4()");
+                entity.Property(p => p.Name).IsRequired().HasMaxLength(255);
+                entity.Property(p => p.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
         }
     }
