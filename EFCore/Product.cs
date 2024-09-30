@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ecommerce_db_api.EFCore
@@ -18,7 +19,9 @@ namespace ecommerce_db_api.EFCore
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public Guid CategoryId { get; set; }  // Foreign Key for the Category
-        // public Category Category { get; set; } = new Category(); // Navigation property
+
+        [JsonIgnore]
+        public Category? Category { get; set; }
 
     }
 }

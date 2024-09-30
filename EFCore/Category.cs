@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ecommerce_db_api.EFCore
@@ -14,6 +15,7 @@ namespace ecommerce_db_api.EFCore
 
         // 1-Many relationship => 1 category has multiple products
         // One-to-Many: A category has many products
-        // public List<Product> Products { get; set; } = new List<Product>();
+        [JsonIgnore]
+        public List<Product> Products { get; set; }
     }
 }

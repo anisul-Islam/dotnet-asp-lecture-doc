@@ -9,6 +9,7 @@ using ecommerce_db_api.Models;
 using ecommerce_db_api.Models.categories;
 using ecommerce_db_api.Models.products;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace ecommerce_db_api.Services
 {
@@ -27,15 +28,9 @@ namespace ecommerce_db_api.Services
         {
             try
             {
-                Console.WriteLine($"---------Test1-------------");
                 var product = _mapper.Map<Product>(newProduct);
                 await _appDbContext.Products.AddAsync(product);
-                Console.WriteLine($"---------Test2-------------");
-
                 await _appDbContext.SaveChangesAsync();
-                Console.WriteLine($"---------Test3-------------");
-
-
                 // product entity here => Product Dto 
                 var productData = _mapper.Map<ProductDto>(product);
                 return productData;
@@ -54,27 +49,34 @@ namespace ecommerce_db_api.Services
             }
         }
 
-        // public async Task<List<CategoryDto>> GetCategoryServiceAsync()
-        // {
-        //     try
-        //     {
-        //         var categories = await _appDbContext.Categories.ToListAsync();
-        //         var categoriesData = _mapper.Map<List<CategoryDto>>(categories);
-        //         return categoriesData;
-        //     }
-        //     catch (DbUpdateException dbEx)
-        //     {
-        //         // Handle database update exceptions (like unique constraint violations)
-        //         Console.WriteLine($"Database Update Error: {dbEx.Message}");
-        //         throw new ApplicationException("An error occurred while saving to the database. Please check the data and try again.");
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         // Handle any other unexpected exceptions
-        //         Console.WriteLine($"An unexpected error occurred: {ex.Message}");
-        //         throw new ApplicationException("An unexpected error occurred. Please try again later.");
-        //     }
-        // }
+        public async Task<List<ProductDto>> GetProductsServiceAsync()
+        {
+            try
+            {
+                Console.WriteLine($"----------test2---------");
+
+                var products = await _appDbContext.Products.Include(p => p.Category).ToListAsync();
+                Console.WriteLine($"----------test3---------");
+
+                var productsData = _mapper.Map<List<ProductDto>>(products);
+
+                Console.WriteLine($"----------test4---------");
+
+                return productsData;
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // Handle database update exceptions (like unique constraint violations)
+                Console.WriteLine($"Database Update Error: {dbEx.Message}");
+                throw new ApplicationException("An error occurred while saving to the database. Please check the data and try again.");
+            }
+            catch (Exception ex)
+            {
+                // Handle any other unexpected exceptions
+                Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+                throw new ApplicationException("An unexpected error occurred. Please try again later.");
+            }
+        }
 
         // // public async Task<UserDto?> GetUserServiceByIdAsync(Guid userId)
         // {

@@ -94,6 +94,8 @@ namespace ecommerce_db_api.Migrations
 
                     b.HasKey("ProductId");
 
+                    b.HasIndex("CategoryId");
+
                     b.ToTable("Products");
                 });
 
@@ -146,6 +148,22 @@ namespace ecommerce_db_api.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ecommerce_db_api.EFCore.Product", b =>
+                {
+                    b.HasOne("ecommerce_db_api.EFCore.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("ecommerce_db_api.EFCore.Category", b =>
+                {
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

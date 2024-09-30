@@ -47,6 +47,21 @@ namespace ecommerce_db_api.EFCore
                 entity.Property(p => p.Name).IsRequired().HasMaxLength(255);
                 entity.Property(p => p.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
+
+            modelBuilder.Entity<Category>()
+            .HasMany(c => c.Products)
+            .WithOne(p => p.Category)
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            //     // One-One => User => Profile
+            //     modelBuilder.Entity<User>()
+            //    .HasOne(u => u.Profile)
+            //    .WithOne(p => p.User)
+            //    .HasForeignKey(p => p.UserId)
+            //    .OnDelete(DeleteBehavior.Cascade);
+
+
         }
     }
 }

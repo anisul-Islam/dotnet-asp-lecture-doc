@@ -44,24 +44,28 @@ namespace ecommerce_db_api.Controllers
             }
         }
 
-        // // GET => /api/users => RETURN all the Users
-        // [HttpGet]
-        // public async Task<IActionResult> GetUsers()
-        // {
-        //     try
-        //     {
-        //         var users = await _userService.GetUsersServiceAsync();
-        //         return ApiResponse.Success(users, "Users are returned succesfully");
-        //     }
-        //     catch (ApplicationException ex)
-        //     {
-        //         return ApiResponse.ServerError("Server error: " + ex.Message);
-        //     }
-        //     catch (System.Exception ex)
-        //     {
-        //         return ApiResponse.ServerError("Server error: " + ex.Message);
-        //     }
-        // }
+        // GET => /api/products => RETURN all the product
+        [HttpGet]
+        public async Task<IActionResult> GetProducts()
+        {
+            try
+            {
+                Console.WriteLine($"----test1---------");
+                
+                var products = await _productService.GetProductsServiceAsync();
+                Console.WriteLine($"----test2---------");
+
+                return ApiResponse.Success(products, "Products are returned succesfully");
+            }
+            catch (ApplicationException ex)
+            {
+                return ApiResponse.ServerError("Server error: " + ex.Message);
+            }
+            catch (System.Exception ex)
+            {
+                return ApiResponse.ServerError("Server error: " + ex.Message);
+            }
+        }
 
         // // GET => /api/users/{userId} => return a single User
         // [HttpGet("{userId}")]
