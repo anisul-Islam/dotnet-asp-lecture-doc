@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ecommerce_db_api.Models.orders;
 using Microsoft.EntityFrameworkCore;
 
 namespace ecommerce_db_api.EFCore
@@ -13,6 +14,7 @@ namespace ecommerce_db_api.EFCore
         public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Orders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,6 +54,12 @@ namespace ecommerce_db_api.EFCore
             .HasMany(c => c.Products)
             .WithOne(p => p.Category)
             .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>()
+            .HasMany(u => u.orders)
+            .WithOne(o => o.User)
+            .HasForeignKey(o => o.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
             //     // One-One => User => Profile
