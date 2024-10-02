@@ -15,6 +15,7 @@ namespace ecommerce_db_api.EFCore
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderProduct> OrderProducts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -56,18 +57,25 @@ namespace ecommerce_db_api.EFCore
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<User>()
-            .HasMany(u => u.orders)
-            .WithOne(o => o.User)
-            .HasForeignKey(o => o.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            // modelBuilder.Entity<User>()
+            // .HasMany(u => u.orders)
+            // .WithOne(o => o.User)
+            // .HasForeignKey(o => o.UserId)
+            // .OnDelete(DeleteBehavior.Cascade);
 
-            //     // One-One => User => Profile
-            //     modelBuilder.Entity<User>()
-            //    .HasOne(u => u.Profile)
-            //    .WithOne(p => p.User)
-            //    .HasForeignKey(p => p.UserId)
-            //    .OnDelete(DeleteBehavior.Cascade);
+            // Many-to-Many relationship between Order and Product using OrderProduct as join table
+            modelBuilder.Entity<OrderProduct>()
+                .HasKey(op => new { op.OrderId, op.ProductId });  // Composite primary key
+
+            modelBuilder.Entity<OrderProduct>()
+                .HasOne(op => op.Order)
+                .WithMany(o => o.OrderProducts)
+                .HasForeignKey(op => op.OrderId);
+
+            modelBuilder.Entity<OrderProduct>()
+                .HasOne(op => op.Product)
+                .WithMany(p => p.OrderProducts)
+                .HasForeignKey(op => op.ProductId);
 
 
         }

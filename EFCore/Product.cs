@@ -23,5 +23,8 @@ namespace ecommerce_db_api.EFCore
         [JsonIgnore]
         public Category? Category { get; set; }
 
+        [JsonIgnore]
+        public List<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
+
     }
 }

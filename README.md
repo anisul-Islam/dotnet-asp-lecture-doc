@@ -1,56 +1,2569 @@
-# Ecommerce API
+##### P2. Concept => DTOs
 
-## ASP.NET and REST API with Database (2024)
+- To better follow the model separation for create, update, and read operations, we can introduce distinct models (DTOs - Data Transfer Objects) for each operation. This will provide clarity in terms of what data is expected in each operation. Here's how we can restructure the code by creating separate models for:
 
-### 1 Create and Run the web api
+  - CreateProductDto: Used for creating a product.
+  - UpdateProductDto: Used for updating a product.
+  - ProductDto: Used for reading a product (read-only view).
 
-- Create a webapi project: `dotnet new console -o ecommerce-api`
-- Run the webapi project: `dotnet watch`
-- Stop opening the tab everytime => Properties folder => launchSettings.json => profiles => launchBrowser => false
-- Add .gitignore => [check this doc](https://github.com/anisul-Islam/dotnet-gitignore/blob/main/README.md)
-- Modify the startup file
+##### P3. Product API => DTOs
+
+- To better follow the model separation for create, update, and read operations, we can introduce distinct models (DTOs - Data Transfer Objects) for each operation. This will provide clarity in terms of what data is expected in each operation. Here's how we can restructure the code by creating separate models for:
+
+  - CreateProductDto: Used for creating a product.
+  - UpdateProductDto: Used for updating a product.
+  - ProductDto: Used for reading a product (read-only view).
+
+- Add the DTOs in the Program.cs file
+
+  ```csharp
+
+    // Models: This is your core domain model representing a product.
+    public record Product
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public string? Description { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    // DTO for creating a product
+    public record CreateProductDto
+    {
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public string? Description { get; set; }
+    }
+
+    // DTO for updating a product
+    public record UpdateProductDto
+    {
+        public string? Name { get; set; }
+        public decimal? Price { get; set; }
+        public string? Description { get; set; }
+    }
+
+    // DTO for reading a product
+    public record ProductDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public string? Description { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+  ```
+
+##### P4. Product API => POST /products => Create a product
+
+- create the post route and controller
+
+  ```csharp
+  var builder = WebApplication.CreateBuilder(args);
+
+  var app = builder.Build();
+
+  // Sample data - In-memory list of products
+  private static List<Product> _products = new List<Product>();
+
+  app.MapGet("/api/products", () =>
+  {
+      // OK = STATUS CODE 200
+      return Results.Ok("products are returned");
+  });
+
+  // POST => /api/products => Create the Product
+  app.MapPost("/api/products", (CreateProductDto newProduct) =>
+  {
+      // Create a new product with Guid and set CreatedAt
+      var product = new Product
+      {
+          Id = Guid.NewGuid(),
+          Name = newProduct.Name,
+          Price = newProduct.Price,
+          Description = newProduct.Description,
+          CreatedAt = DateTime.Now
+      };
+
+      _products.Add(product); // Add the newly created product to the list
+      return Results.Created($"/api/products/{product.Id}", product);
+  });
+
+  app.MapDelete("/api/products", () =>
+  {
+      // after delete normally we do not return no content = 204
+      return Results.NoContent();
+  });
+
+  app.MapPut("/api/products", () =>
+  {
+      return Results.NoContent();
+  });
+
+  app.Run();
+
+  // Models
+  public record Product
+  {
+      public Guid Id { get; set; }
+      public string Name { get; set; }
+      public decimal Price { get; set; }
+      public string? Description { get; set; }
+      public DateTime CreatedAt { get; set; }
+  }
+  public record CreateProductDto
+  {
+      public string Name { get; set; }
+      public decimal Price { get; set; }
+      public string? Description { get; set; }
+  }
+
+  // DTO for updating a product
+  public record UpdateProductDto
+  {
+      public string Name { get; set; }
+      public decimal Price { get; set; }
+      public string? Description { get; set; }
+  }
+
+  // DTO for reading a product
+  public record ProductDto
+  {
+      public Guid Id { get; set; }
+      public string Name { get; set; }
+      public decimal Price { get; set; }
+      public string? Description { get; set; }
+      public DateTime CreatedAt { get; set; }
+  }
+  ```
+
+##### P8. Concept => Route Constraint
+
+- {param:int}, {param:bool}, {param:decimal}, {param:guid}, {param:datetime}, {param:alpha}, {param:minlength(x)}, {param:maxlength(x)}, {param:length(x)}, {param:length(x,y)}, {param:range(x,y)}
+
+- Route constraints are a powerful feature in ASP.NET Core that allows you to limit and validate the types of values that can be passed as route parameters. They provide a way to ensure that requests meet certain criteria before processing, helping to reduce errors and improve the user experience.
+
+Here are some common route constraints examples:
+
+###### **Common Route Constraints**
+
+| Constraint             | Description                                                          | Example                                                                           |
+| ---------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `{param:int}`          | Restricts the route parameter to an integer                          | `/api/products/{id:int}`                                                          |
+| `{param:bool}`         | Restricts the route parameter to a boolean value                     | `/api/status/{active:bool}`                                                       |
+| `{param:guid}`         | Restricts the route parameter to a GUID                              | `/api/products/{id:guid}`                                                         |
+| `{param:datetime}`     | Restricts the route parameter to a `DateTime` value                  | `/api/events/{date:datetime}`                                                     |
+| `{param:decimal}`      | Restricts the route parameter to a decimal value                     | `/api/products/{price:decimal}`                                                   |
+| `{param:alpha}`        | Restricts the route parameter to alphabetical characters             | `/api/products/{name:alpha}`                                                      |
+| `{param:minlength(x)}` | Ensures that the string parameter is at least x characters           | `/api/users/{name:minlength(3)}`                                                  |
+| `{param:maxlength(x)}` | Ensures that the string parameter is at most x characters            | `/api/users/{name:maxlength(10)}`                                                 |
+| `{param:length(x)}`    | Restricts the parameter length to exactly x characters               | `/api/users/{code:length(5)}`                                                     |
+| `{param:length(x,y)}`  | Restricts the parameter length to a range between x and y characters | `/api/users/{name:length(3,10)}`                                                  |
+| `{param:range(x,y)}`   | Ensures that the parameter value falls within the specified range    | `/api/products/{price:range(10,100)}`                                             |
+| `{param:regex(...)}`   | Ensures that the parameter matches a regex pattern                   | `/api/users/{email:regex(^\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$)}` |
+
+###### **Examples of Route Constraints**
+
+###### 1. **Integer Route Constraint**
+
+Restrict a route parameter to accept only integers:
+
+```csharp
+app.MapGet("/api/products/{id:int}", (int id) =>
+{
+    return $"Product with ID {id}";
+});
+```
+
+- URL: `/api/products/5` (valid)
+- URL: `/api/products/test` (invalid, returns a 404)
+
+###### 2. **GUID Route Constraint**
+
+Restrict a route parameter to accept only GUIDs:
+
+```csharp
+app.MapGet("/api/products/{id:guid}", (Guid id) =>
+{
+    return $"Product with ID {id}";
+});
+```
+
+- URL: `/api/products/8f2f4ca5-0c1e-4b2c-9d1f-23121dabe75b` (valid)
+- URL: `/api/products/123` (invalid, returns a 404)
+
+###### 3. **DateTime Route Constraint**
+
+Restrict a route parameter to accept only DateTime values:
+
+```csharp
+app.MapGet("/api/events/{date:datetime}", (DateTime date) =>
+{
+    return $"Event on {date.ToShortDateString()}";
+});
+```
+
+- URL: `/api/events/2024-10-01` (valid)
+- URL: `/api/events/not-a-date` (invalid, returns a 404)
+
+###### 4. **Decimal Route Constraint**
+
+Restrict a route parameter to accept only decimal values:
+
+```csharp
+app.MapGet("/api/products/{price:decimal}", (decimal price) =>
+{
+    return $"Product with price {price}";
+});
+```
+
+- URL: `/api/products/10.99` (valid)
+- URL: `/api/products/ten` (invalid, returns a 404)
+
+###### 5. **Alphabetic Route Constraint**
+
+Restrict a route parameter to accept only alphabetic characters:
+
+```csharp
+app.MapGet("/api/products/{name:alpha}", (string name) =>
+{
+    return $"Product name: {name}";
+});
+```
+
+- URL: `/api/products/laptop` (valid)
+- URL: `/api/products/1234` (invalid, returns a 404)
+
+###### 6. **MinLength and MaxLength Route Constraints**
+
+Restrict the length of a route parameter:
+
+```csharp
+// Minimum length of 3 characters
+app.MapGet("/api/users/{username:minlength(3)}", (string username) =>
+{
+    return $"User: {username}";
+});
+
+// Maximum length of 10 characters
+app.MapGet("/api/users/{username:maxlength(10)}", (string username) =>
+{
+    return $"User: {username}";
+});
+```
+
+- URL: `/api/users/john` (valid)
+- URL: `/api/users/jo` (invalid, returns a 404 due to minlength constraint)
+
+###### 7. **Range Route Constraint**
+
+Restrict the route parameter to fall within a certain range:
+
+```csharp
+app.MapGet("/api/products/{price:range(10, 100)}", (int price) =>
+{
+    return $"Product with price in range: {price}";
+});
+```
+
+- URL: `/api/products/50` (valid)
+- URL: `/api/products/5` (invalid, returns a 404 due to out-of-range value)
+
+###### 8. **Regex Route Constraint**
+
+Use a regular expression to validate the route parameter:
+
+```csharp
+app.MapGet("/api/users/{email:regex(^\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$)}", (string email) =>
+{
+    return $"User with email: {email}";
+});
+```
+
+- URL: `/api/users/test@example.com` (valid)
+- URL: `/api/users/invalid-email` (invalid, returns a 404 due to regex constraint)
+
+###### Combining Multiple Constraints
+
+You can combine multiple constraints in the same route:
+
+```csharp
+app.MapGet("/api/products/{id:int}/{price:decimal}", (int id, decimal price) =>
+{
+    return $"Product with ID {id} and Price {price}";
+});
+```
+
+- URL: `/api/products/5/19.99` (valid)
+- URL: `/api/products/abc/19.99` (invalid, returns a 404 due to invalid ID)
+- URL: `/api/products/5/abc` (invalid, returns a 404 due to invalid price)
+
+##### P9. Product API => Add constraint
+
+```csharp
+  // GET => /products{id} => Get a product by id
+  app.MapGet("/api/products/{id:guid}", (Guid id) =>
+  {
+      // Find the product
+      var product = _products.Find(product => product.Id == id);
+
+      // Return the product as ProductDto
+      var productDto = new ProductDto
+      {
+          Id = product.Id,
+          Name = product.Name,
+          Price = product.Price,
+          Description = product.Description,
+          CreatedAt = product.CreatedAt
+      };
+
+      return Results.Ok(productDto);
+  });
+```
+
+##### P10. Product API => GET /products/{id} => Delete a single product
+
+```csharp
+// DELETE: /products/{id} - Delete a product by ID
+app.MapDelete("/api/products/{id: guid}", (Guid id) =>
+{
+    var product = _products.Find(product => product.Id == id);
+    products.Remove(product);
+    return Results.NoContent();
+});
+```
+
+- test the delete product endpoint
+
+```http
+DELETE http://localhost:5079/api/products/product_id_here
+```
+
+##### P11. Product API => PUT => /products{id} => update a product by id
+
+```csharp
+// PUT => /products{id} => update a product by id
+app.MapPut("/api/products/{id:guid}", (Guid id, UpdateProductDto updateProductData) =>
+{
+    var product = _products.Find(product => product.Id == id);
+
+    // Update product details
+    product.Name = updateProductData.Name ?? product.Name;
+    product.Price = updateProductData.Price ?? product.Price;
+    product.Description = updateProductData.Description ?? product.Description;
+
+    return Results.NoContent();
+});
+```
+
+- test the update product endpoint
+
+```http
+PUT http://localhost:5079/api/products/add_product_id_here
+Content-Type: application/json
+
+{
+  "name": "USB-C Charging Cable 3"
+}
+```
+
+##### P12. Product API => Add Basic Validation
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+var app = builder.Build();
+
+// Sample data - In-memory list of products
+private static List<Product> _products = new List<Product>();
+
+app.MapGet("/api/products", () =>
+{
+    var productDtos = _products.Select(product => new ProductDto
+    {
+        Id = product.Id,
+        Name = product.Name,
+        Description = product.Description,
+        CreatedAt = product.CreatedAt,
+    }).ToList();
+    // OK = STATUS CODE 200
+    return Results.Ok(productDtos);
+});
+
+// GET => /products{id} => Get a product by id
+app.MapGet("/api/products/{id:guid}", (Guid id) =>
+{
+    // Find the product
+    var product = _products.Find(product => product.Id == id);
+
+    // basic validation
+    if (product == null)
+    {
+        return Results.NotFound($"Product with ID {id} not found.");
+    }
+
+    // Return the product as ProductDto
+    var productDto = new ProductDto
+    {
+        Id = product.Id,
+        Name = product.Name,
+        Price = product.Price,
+        Description = product.Description,
+        CreatedAt = product.CreatedAt
+    };
+
+    return Results.Ok(productDto);
+});
+
+// POST => /api/products => Create the Product
+app.MapPost("/api/products", (CreateProductDto newProduct) =>
+{
+    // Validate product name
+    if (string.IsNullOrEmpty(newProduct.Name))
+    {
+        return Results.BadRequest("Product name is required and cannot be empty.");
+    }
+
+    // Validate product price
+    if (newProduct.Price <= 0)
+    {
+        return Results.BadRequest("Product price must be greater than zero.");
+    }
+
+    // Create a new product with Guid and set CreatedAt
+    var product = new Product
+    {
+        Id = Guid.NewGuid(),
+        Name = newProduct.Name,
+        Price = newProduct.Price,
+        Description = newProduct.Description,
+        CreatedAt = DateTime.Now
+    };
+
+    products.Add(product); // Add the newly created product to the list
+    return Results.Created($"/api/products/{product.Id}", product);
+});
+
+app.MapDelete("/api/products/{id: guid}", (Guid id) =>
+{
+    var product = products.Find(product => product.Id == id);
+
+    // basic validation
+    if (product == null)
+    {
+        return Results.NotFound($"Product with ID {id} not found.");
+    }
+
+    products.Remove(product);
+    return Results.NoContent();
+});
+
+app.MapPut("/api/products/{id:guid}", (Guid id, UpdateProductDto updateProductData) =>
+{
+    var product = _products.Find(product => product.Id == id);
+
+    // basic validation
+    if (product == null)
+    {
+        return Results.NotFound($"Product with ID {id} not found.");
+    }
+
+    // Validate updated product name
+    if (string.IsNullOrEmpty(updateProductData.Name))
+    {
+        return Results.BadRequest("Product name is required and cannot be empty.");
+    }
+
+    // Validate updated product price
+    if (updateProductData.Price <= 0)
+    {
+        return Results.BadRequest("Product price must be greater than zero.");
+    }
+
+    // Update product details
+    product.Name = updateProductData.Name ?? product.Name;
+    product.Price = updateProductData.Price ?? product.Price;
+    product.Description = updateProductData.Description ?? product.Description;
+
+    return Results.NoContent();
+});
+
+app.Run();
+
+// Models
+public record Product
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public string? Description { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+public record CreateProductDto
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public string? Description { get; set; }
+}
+
+// DTO for updating a product
+public record UpdateProductDto
+{
+    public string? Name { get; set; }
+    public decimal? Price { get; set; }
+    public string? Description { get; set; }
+}
+
+// DTO for reading a product
+public record ProductDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public string? Description { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+```
+
+##### **Extra Assignment: User Management API with CRUD Operations**
+
+The goal of this assignment is to help you practice building a basic User Management API using ASP.NET Core. You will create endpoints to manage users with basic CRUD (Create, Read, Update, Delete) operations.
+
+- **Requirements**
+
+1. **Create a User Model**:
+
+   - The user should have the following properties:
+     - `Id` (Guid) - Unique identifier for each user.
+     - `FirstName` (string) - User's first name.
+     - `LastName` (string) - User's last name.
+     - `Email` (string) - User's email address.
+     - `CreatedAt` (DateTime) - The date when the user was created.
+
+2. **Create CRUD Endpoints**:
+
+   - **GET** `/users`: Retrieve a list of all users with optional pagination (e.g., `pageNumber` and `pageSize`).
+   - **GET** `/users/{id}`: Retrieve a specific user by their unique `Id`.
+   - **POST** `/users`: Create a new user.
+   - **PUT** `/users/{id}`: Update an existing user's details.
+   - **DELETE** `/users/{id}`: Delete a user by their unique `Id`.
+
+3. **Input Validation**:
+
+   - Ensure that `Email` is valid and unique.
+   - Ensure that `FirstName` and `LastName` are not empty.
+
+4. **Responses**:
+   - Return appropriate HTTP status codes:
+     - `200 OK` for successful operations.
+     - `201 Created` for successfully created users.
+     - `404 Not Found` if the user is not found.
+     - `400 Bad Request` for invalid inputs.
+
+- **Program.cs**
+
+Here is a basic template for your `Program.cs` file:
+
+```csharp
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
+using System.Collections.Generic;
+
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+// In-memory list of users
+var users = new List<User>();
+
+// GET: /users - Retrieve all users with optional pagination
+app.MapGet("/users", (int pageNumber = 1, int pageSize = 5) =>
+{
+    if (pageNumber < 1 || pageSize < 1)
+    {
+        return Results.BadRequest("Page number and page size must be greater than 0.");
+    }
+
+    var totalUsers = users.Count;
+    var paginatedUsers = users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+    var response = new
+    {
+        Status = "Success",
+        TotalUsers = totalUsers,
+        PageNumber = pageNumber,
+        PageSize = pageSize,
+        TotalPages = (int)Math.Ceiling(totalUsers / (double)pageSize),
+        Users = paginatedUsers
+    };
+
+    return Results.Ok(response);
+});
+
+// GET: /users/{id} - Retrieve a specific user by ID
+app.MapGet("/users/{id:guid}", (Guid id) =>
+{
+    var user = users.FirstOrDefault(u => u.Id == id);
+    if (user == null)
+    {
+        return Results.NotFound($"User with ID {id} not found.");
+    }
+
+    return Results.Ok(user);
+});
+
+// POST: /users - Create a new user
+app.MapPost("/users", (User newUser) =>
+{
+    if (string.IsNullOrWhiteSpace(newUser.FirstName) || string.IsNullOrWhiteSpace(newUser.LastName))
+    {
+        return Results.BadRequest("First name and last name are required.");
+    }
+
+    if (!IsValidEmail(newUser.Email) || users.Any(u => u.Email == newUser.Email))
+    {
+        return Results.BadRequest("Invalid or duplicate email address.");
+    }
+
+    newUser.Id = Guid.NewGuid();
+    newUser.CreatedAt = DateTime.UtcNow;
+    users.Add(newUser);
+
+    var response = new
+    {
+        Success = true,
+        StatusCode = 201,
+        Message = "User created successfully.",
+        User = newUser
+    };
+
+    return Results.Created($"/users/{newUser.Id}", response);
+});
+
+// PUT: /users/{id} - Update an existing user
+app.MapPut("/users/{id:guid}", (Guid id, User updatedUser) =>
+{
+    var user = users.FirstOrDefault(u => u.Id == id);
+    if (user == null)
+    {
+        return Results.NotFound($"User with ID {id} not found.");
+    }
+
+    if (string.IsNullOrWhiteSpace(updatedUser.FirstName) || string.IsNullOrWhiteSpace(updatedUser.LastName))
+    {
+        return Results.BadRequest("First name and last name are required.");
+    }
+
+    if (!IsValidEmail(updatedUser.Email) || users.Any(u => u.Email == updatedUser.Email && u.Id != id))
+    {
+        return Results.BadRequest("Invalid or duplicate email address.");
+    }
+
+    user.FirstName = updatedUser.FirstName;
+    user.LastName = updatedUser.LastName;
+    user.Email = updatedUser.Email;
+
+    return Results.Ok(user);
+});
+
+// DELETE: /users/{id} - Delete a user by ID
+app.MapDelete("/users/{id:guid}", (Guid id) =>
+{
+    var user = users.FirstOrDefault(u => u.Id == id);
+    if (user == null)
+    {
+        return Results.NotFound($"User with ID {id} not found.");
+    }
+
+    users.Remove(user);
+    return Results.NoContent();
+});
+
+app.Run();
+
+// Simple User Model
+public class User
+{
+    public Guid Id { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}
+
+// Utility method to validate email addresses
+bool IsValidEmail(string email)
+{
+    try
+    {
+        var addr = new System.Net.Mail.MailAddress(email);
+        return addr.Address == email;
+    }
+    catch
+    {
+        return false;
+    }
+}
+```
+
+- **Assignment Tasks for Students**
+
+1. **Extend the User Model**:
+
+   - Add more properties like `PhoneNumber`, `Address`, or `DateOfBirth` and update CRUD operations accordingly.
+
+2. **Error Handling**:
+
+   - Improve error handling and add more specific error messages for invalid inputs.
+
+3. **Testing**:
+
+   - Use Postman, REST Client, or any other tool to test each endpoint (`GET`, `POST`, `PUT`, `DELETE`) thoroughly.
+   - Create various test cases, including edge cases, such as attempting to update or delete a user that does not exist.
+
+4. **Input Validation**:
+
+   - Add more validation rules, such as ensuring names have a minimum length or that emails follow a specific pattern.
+
+5. **Enhance Pagination**:
+   - Add more complex pagination features, such as sorting by `CreatedAt` or filtering by `FirstName`.
+
+This assignment will help students practice building CRUD operations using ASP.NET Core Minimal APIs, learn to work with `Guid` for unique identifiers, and understand how to validate and manage data effectively in a web application.
+
+##### P13. Concept => MVC Pattern
+
+The MVC (Model-View-Controller) pattern is a design pattern used in ASP.NET for developing web applications. It separates an application into three interconnected components, each with its distinct responsibilities. This separation of concerns allows for a more maintainable, scalable, and testable codebase.
+
+- Benefits of the MVC Pattern:
+  - Separation of concerns: Keeps the data (Model), UI (View), and application logic (Controller) separate, making the application easier to maintain.
+  - Testability: Each component can be tested independently.
+  - Scalability: The application can grow without becoming overly complex because responsibilities are divided among different components.
+
+##### P14. Product API => Add MVC Pattern
+
+- To refactor the product API using the MVC pattern, we'll divide it into Model, Controller, and View layers. Although in this case, the API doesn't have a traditional "View" layer because it returns JSON, we'll follow the pattern of separating the responsibilities of each component. Here’s how to separate the code:
+
+- Folder Structure:
+
+  - Controllers
+    - ProductsController.cs
+  - Models
+    - Product.cs
+    - CreateProductDto.cs
+    - UpdateProductDto.cs
+    - ProductDto.cs
+  - Program.
+
+- Create Models => Models/products
+
+```csharp
+// Product.cs
+// Product Model representing an actual product
+public record Product
+{
+  public Guid Id { get; set; }
+  public string Name { get; set; }
+  public decimal Price { get; set; }
+  public string? Description { get; set; }
+  public DateTime CreatedAt { get; set; }
+}
+
+// Product.cs
+// ProductDto to read a product
+public record Product
+{
+  public Guid Id { get; set; }
+  public string Name { get; set; }
+  public decimal Price { get; set; }
+  public string? Description { get; set; }
+  public DateTime CreatedAt { get; set; }
+}
+
+// CreateProductDto.cs
+// CreateProductDto to create a product
+public record CreateProductDto
+{
+  public string Name { get; set; }
+  public decimal Price { get; set; }
+  public string? Description { get; set; }
+}
+
+// UpdateProductDto.cs
+// UpdateProductDto to update a product
+public record UpdateProductDto
+{
+  public string? Name { get; set; }
+  public decimal? Price { get; set; }
+  public string? Description { get; set; }
+}
+```
+
+- Create Controller => Controllers => ProductController.cs
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    // In-memory list of products for simplicity
+    private static List<Product> products = new List<Product>();
+
+    // GET: /api/products
+    [HttpGet]
+    public IActionResult GetAllProducts()
+    {
+        var productDtos = products.Select(product => new ProductDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            CreatedAt = product.CreatedAt,
+            Price = product.Price
+        }).ToList();
+        return Ok(productDtos); // Return OK 200 with product DTOs
+    }
+
+    // GET: /api/products/{id}
+    [HttpGet("{id:guid}")]
+    public IActionResult GetProductById(Guid id)
+    {
+        var product = products.Find(p => p.Id == id);
+        if (product == null)
+        {
+            return NotFound($"Product with ID {id} not found.");
+        }
+
+        var productDto = new ProductDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Price = product.Price,
+            Description = product.Description,
+            CreatedAt = product.CreatedAt
+        };
+
+        return Ok(productDto); // Return OK 200 with product DTO
+    }
+
+    // POST: /api/products
+    [HttpPost]
+    public IActionResult CreateProduct(CreateProductDto newProduct)
+    {
+        // Validate product name
+        if (string.IsNullOrEmpty(newProduct.Name))
+        {
+            return BadRequest("Product name is required.");
+        }
+
+        // Validate product price
+        if (newProduct.Price <= 0)
+        {
+            return BadRequest("Product price must be greater than zero.");
+        }
+
+        var product = new Product
+        {
+            Id = Guid.NewGuid(),
+            Name = newProduct.Name,
+            Price = newProduct.Price,
+            Description = newProduct.Description,
+            CreatedAt = DateTime.Now
+        };
+
+        products.Add(product); // Add the product to the list
+
+        return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
+    }
+
+    // DELETE: /api/products/{id}
+    [HttpDelete("{id:guid}")]
+    public IActionResult DeleteProduct(Guid id)
+    {
+        var product = products.Find(p => p.Id == id);
+        if (product == null)
+        {
+            return NotFound($"Product with ID {id} not found.");
+        }
+
+        products.Remove(product);
+        return NoContent(); // Return No Content 204
+    }
+
+    // PUT: /api/products/{id}
+    [HttpPut("{id:guid}")]
+    public IActionResult UpdateProduct(Guid id, UpdateProductDto updateProductData)
+    {
+        var product = products.Find(p => p.Id == id);
+        if (product == null)
+        {
+            return NotFound($"Product with ID {id} not found.");
+        }
+
+        // Validate updated product name
+        if (string.IsNullOrEmpty(updateProductData.Name))
+        {
+            return BadRequest("Product name is required.");
+        }
+
+        // Validate updated product price
+        if (updateProductData.Price <= 0)
+        {
+            return BadRequest("Product price must be greater than zero.");
+        }
+
+        // Update product details
+        product.Name = updateProductData.Name ?? product.Name;
+        product.Price = updateProductData.Price ?? product.Price;
+        product.Description = updateProductData.Description ?? product.Description;
+
+        return NoContent(); // Return No Content 204
+    }
+}
+
+```
+
+- Change in Program.cs
 
   ```csharp
   // Program.cs
   var builder = WebApplication.CreateBuilder(args);
 
-  builder.Services.AddEndpointsApiExplorer();
-  builder.Services.AddSwaggerGen();
-
-  services.AddControllers()
-  .AddJsonOptions(options =>
-  {
-      options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-      options.JsonSerializerOptions.WriteIndented = true;
-  });
+  // Add services to the container
+  builder.Services.AddControllers(); // Add MVC controllers
 
   var app = builder.Build();
 
-  // Configure the HTTP request pipeline.
-  if (app.Environment.IsDevelopment())
-  {
-      app.UseSwagger();
-      app.UseSwaggerUI();
-  }
-
-  app.UseHttpsRedirection();
-
-
-  app.MapGet("/", () =>
-  {
-      var response = new
-      {
-          StatusCode = 200,
-          Message = "Api is running fine"
-      };
-      return Results.Ok(response);
-  })
-  .WithOpenApi();
+  app.MapControllers();
 
   app.Run();
+
   ```
 
-To set up your ASP.NET Core project with database connectivity using Entity Framework Core (EF Core) and PostgreSQL, you’ll need the following dependencies.
+##### P15. Concept => Utilities
+
+- Utilities: We will create utility methods to handle common tasks, like validating product names and prices.
+
+##### P16. Product API => Add Utilities
+
+- Folder Structure
+
+  - Utilities
+    - ProductValidator.cs
+  - Controllers
+    - ProductsController.cs
+  - Models
+    - Product.cs
+    - CreateProductDto.cs
+    - UpdateProductDto.cs
+    - ProductDto.cs
+  - Program.
+
+- create the utility
+
+```csharp
+// Utilities/ProductValidator.cs
+public static class ProductValidator
+{
+    public static bool IsValidName(string name)
+    {
+        return !string.IsNullOrEmpty(name);
+    }
+
+    public static bool IsValidPrice(decimal price)
+    {
+        return price > 0;
+    }
+}
+```
+
+- use them from Controller
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+  // In-memory list of products for simplicity
+  private static List<Product> products = new List<Product>();
+
+  // GET: /api/products
+  [HttpGet]
+  public IActionResult GetAllProducts()
+  {
+    var productDtos = products.Select(product => new ProductDto
+    {
+      Id = product.Id,
+      Name = product.Name,
+      Description = product.Description,
+      CreatedAt = product.CreatedAt,
+      Price = product.Price
+    }).ToList();
+    return Ok(productDtos); // Return OK 200 with product DTOs
+  }
+
+  // GET: /api/products/{id}
+  [HttpGet("{id:guid}")]
+  public IActionResult GetProductById(Guid id)
+  {
+    var product = products.Find(p => p.Id == id);
+    if (product == null)
+    {
+      return NotFound($"Product with ID {id} not found.");
+    }
+
+    var productDto = new ProductDto
+    {
+      Id = product.Id,
+      Name = product.Name,
+      Price = product.Price,
+      Description = product.Description,
+      CreatedAt = product.CreatedAt
+    };
+
+    return Ok(productDto); // Return OK 200 with product DTO
+  }
+
+  // POST: /api/products
+  [HttpPost]
+  public IActionResult CreateProduct(CreateProductDto newProduct)
+  {
+    // Validate product name
+    if (!ProductValidator.IsValidName(newProduct.Name))
+    {
+      return BadRequest("Product name is required.");
+    }
+
+    // Validate product price
+    if (!ProductValidator.IsValidPrice(newProduct.Price))
+    {
+      return BadRequest("Product price must be greater than zero.");
+    }
+
+    var product = new Product
+    {
+      Id = Guid.NewGuid(),
+      Name = newProduct.Name,
+      Price = newProduct.Price,
+      Description = newProduct.Description,
+      CreatedAt = DateTime.Now
+    };
+
+    products.Add(product); // Add the product to the list
+
+    return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
+  }
+
+  // DELETE: /api/products/{id}
+  [HttpDelete("{id:guid}")]
+  public IActionResult DeleteProduct(Guid id)
+  {
+    var product = products.Find(p => p.Id == id);
+    if (product == null)
+    {
+      return NotFound($"Product with ID {id} not found.");
+    }
+
+    products.Remove(product);
+    return NoContent(); // Return No Content 204
+  }
+
+  // PUT: /api/products/{id}
+  [HttpPut("{id:guid}")]
+  public IActionResult UpdateProduct(Guid id, UpdateProductDto updateProductData)
+  {
+    var product = products.Find(p => p.Id == id);
+    if (product == null)
+    {
+      return NotFound($"Product with ID {id} not found.");
+    }
+
+    // Validate updated product name
+    if (!ProductValidator.IsValidName(product.Name))
+    {
+      return BadRequest("Product name is required.");
+    }
+
+    // Validate updated product price
+    if (!ProductValidator.IsValidPrice(product.Price))
+    {
+      return BadRequest("Product price must be greater than zero.");
+    }
+
+    // Update product details
+    product.Name = updateProductData.Name ?? product.Name;
+    product.Price = updateProductData.Price ?? product.Price;
+    product.Description = updateProductData.Description ?? product.Description;
+
+    return NoContent(); // Return No Content 204
+  }
+}
+```
+
+##### P17. Concept => Services
+
+- Services: We will move the business logic (e.g., product creation, validation, etc.) to a service layer. This will help keep the controllers clean and focus on handling HTTP requests.
+- Utilities: We will create utility methods to handle common tasks, like validating product names and prices.
+
+- Folder Structure
+
+  - Utilities
+    - ProductValidator.cs
+  - Services
+    - IProductService.cs
+    - ProductService.cs
+  - Controllers
+    - ProductsController.cs
+  - Models
+    - Product.cs
+    - CreateProductDto.cs
+    - UpdateProductDto.cs
+    - ProductDto.cs
+  - Program.
+
+- Add the service
+
+```csharp
+// Services/ProductService.cs
+
+public class ProductService
+{
+  private readonly List<Product> _products;
+
+  public ProductService()
+  {
+    // Initialize with some sample data
+    _products = new List<Product>();
+  }
+
+  public IEnumerable<ProductDto> GetAllProducts()
+  {
+    return _products.Select(p => new ProductDto
+    {
+      Id = p.Id,
+      Name = p.Name,
+      Description = p.Description,
+      Price = p.Price,
+      CreatedAt = p.CreatedAt
+    });
+  }
+
+  public ProductDto GetProductById(Guid id)
+  {
+    var product = _products.FirstOrDefault(p => p.Id == id);
+    if (product == null) return null;
+
+    return new ProductDto
+    {
+      Id = product.Id,
+      Name = product.Name,
+      Description = product.Description,
+      Price = product.Price,
+      CreatedAt = product.CreatedAt
+    };
+  }
+
+  public Product CreateProduct(CreateProductDto newProduct)
+  {
+    var product = new Product
+    {
+      Id = Guid.NewGuid(),
+      Name = newProduct.Name,
+      Price = newProduct.Price,
+      Description = newProduct.Description,
+      CreatedAt = DateTime.Now
+    };
+
+    _products.Add(product);
+    return product;
+  }
+
+  public bool ProductExistsByName(string name)
+  {
+    return _products.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+  }
+
+  public void DeleteProduct(Guid id)
+  {
+    var product = _products.FirstOrDefault(p => p.Id == id);
+    if (product != null)
+    {
+      _products.Remove(product);
+    }
+  }
+
+  public void UpdateProduct(Guid id, UpdateProductDto updateProduct)
+  {
+    var product = _products.FirstOrDefault(p => p.Id == id);
+    if (product != null)
+    {
+      product.Name = updateProduct.Name ?? product.Name;
+      product.Price = updateProduct.Price ?? product.Price;
+      product.Description = updateProduct.Description ?? product.Description;
+    }
+  }
+}
+
+```
+
+- modify the controller
+
+```csharp
+// Controller
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/products")]
+public class ProductController : ControllerBase
+{
+    private readonly ProductService _productService;
+
+    public ProductController(ProductService productService)
+    {
+        _productService = productService;
+    }
+
+    // GET: /api/products
+    [HttpGet]
+    public IActionResult GetAllProducts()
+    {
+        var products = _productService.GetAllProducts();
+        return Ok(products);
+    }
+
+    // GET: /api/products/{id}
+    [HttpGet("{id:guid}")]
+    public IActionResult GetProductById(Guid id)
+    {
+        var product = _productService.GetProductById(id);
+        if (product == null)
+        {
+            return NotFound($"Product with ID {id} not found.");
+        }
+        return Ok(product);
+    }
+
+    // POST: /api/products
+    [HttpPost]
+    public IActionResult CreateProduct(CreateProductDto newProduct)
+    {
+        // Validate product name
+        if (!ProductValidator.IsValidName(newProduct.Name))
+        {
+            return BadRequest("Product name is required and cannot be empty.");
+        }
+
+        // Validate product price
+        if (!ProductValidator.IsValidPrice(newProduct.Price))
+        {
+            return BadRequest("Product price must be greater than zero.");
+        }
+
+        // Check if product exists by name
+        if (_productService.ProductExistsByName(newProduct.Name))
+        {
+            return Conflict($"A product with the name '{newProduct.Name}' already exists.");
+        }
+
+        // Create and return the product
+        var product = _productService.CreateProduct(newProduct);
+        return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
+    }
+
+    // DELETE: /api/products/{id}
+    [HttpDelete("{id:guid}")]
+    public IActionResult DeleteProduct(Guid id)
+    {
+        var product = _productService.GetProductById(id);
+        if (product == null)
+        {
+            return NotFound($"Product with ID {id} not found.");
+        }
+
+        _productService.DeleteProduct(id);
+        return NoContent();
+    }
+
+    // PUT: /api/products/{id}
+    [HttpPut("{id:guid}")]
+    public IActionResult UpdateProduct(Guid id, UpdateProductDto updateProductData)
+    {
+        var product = _productService.GetProductById(id);
+        if (product == null)
+        {
+            return NotFound($"Product with ID {id} not found.");
+        }
+
+        // Validate updated product name
+        if (!ProductValidator.IsValidName(updateProductData.Name))
+        {
+            return BadRequest("Product name is required and cannot be empty.");
+        }
+
+        // Validate updated product price
+        if (!ProductValidator.IsValidPrice(updateProductData.Price ?? 0))
+        {
+            return BadRequest("Product price must be greater than zero.");
+        }
+
+        // Update product
+        _productService.UpdateProduct(id, updateProductData);
+        return NoContent();
+    }
+}
+
+```
+
+- modify the Program.cs
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Register ProductService as a service
+builder.Services.AddScoped<ProductService>();
+
+// Add services to the container
+builder.Services.AddControllers(); // Add MVC controllers
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline
+app.UseHttpsRedirection();
+
+app.MapControllers();
+
+app.Run();
+
+```
+
+##### P18. Concept => interface
+
+##### P19. Product => Add interface
+
+```csharp
+public interface IProductService
+{
+  IEnumerable<ProductDto> GetAllProducts();
+  ProductDto GetProductById(Guid id);
+  Product CreateProduct(CreateProductDto newProduct);
+  bool ProductExistsByName(string name);
+  void DeleteProduct(Guid id);
+  void UpdateProduct(Guid id, UpdateProductDto updateProduct);
+}
+
+public class ProductService: IProductService
+{
+  private readonly List<Product> _products;
+
+  public ProductService()
+  {
+    // Initialize with some sample data
+    _products = new List<Product>();
+  }
+
+  public IEnumerable<ProductDto> GetAllProducts()
+  {
+    return _products.Select(p => new ProductDto
+    {
+      Id = p.Id,
+      Name = p.Name,
+      Description = p.Description,
+      Price = p.Price,
+      CreatedAt = p.CreatedAt
+    });
+  }
+
+  public ProductDto GetProductById(Guid id)
+  {
+    var product = _products.FirstOrDefault(p => p.Id == id);
+    if (product == null) return null;
+
+    return new ProductDto
+    {
+      Id = product.Id,
+      Name = product.Name,
+      Description = product.Description,
+      Price = product.Price,
+      CreatedAt = product.CreatedAt
+    };
+  }
+
+  public Product CreateProduct(CreateProductDto newProduct)
+  {
+    var product = new Product
+    {
+      Id = Guid.NewGuid(),
+      Name = newProduct.Name,
+      Price = newProduct.Price,
+      Description = newProduct.Description,
+      CreatedAt = DateTime.Now
+    };
+
+    _products.Add(product);
+    return product;
+  }
+
+  public bool ProductExistsByName(string name)
+  {
+    return _products.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+  }
+
+  public void DeleteProduct(Guid id)
+  {
+    var product = _products.FirstOrDefault(p => p.Id == id);
+    if (product != null)
+    {
+      _products.Remove(product);
+    }
+  }
+
+  public void UpdateProduct(Guid id, UpdateProductDto updateProduct)
+  {
+    var product = _products.FirstOrDefault(p => p.Id == id);
+    if (product != null)
+    {
+      product.Name = updateProduct.Name ?? product.Name;
+      product.Price = updateProduct.Price ?? product.Price;
+      product.Description = updateProduct.Description ?? product.Description;
+    }
+  }
+}
+```
+
+- Modify the controller
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/products")]
+public class ProductController : ControllerBase
+{
+  private readonly IProductService _productService;
+
+  public ProductController(IProductService productService)
+  {
+    _productService = productService;
+  }
+
+  // GET: /api/products
+  [HttpGet]
+  public IActionResult GetAllProducts()
+  {
+    var products = _productService.GetAllProducts();
+    return Ok(products);
+  }
+
+  // GET: /api/products/{id}
+  [HttpGet("{id:guid}")]
+  public IActionResult GetProductById(Guid id)
+  {
+    var product = _productService.GetProductById(id);
+    if (product == null)
+    {
+      return NotFound($"Product with ID {id} not found.");
+    }
+    return Ok(product);
+  }
+
+  // POST: /api/products
+  [HttpPost]
+  public IActionResult CreateProduct(CreateProductDto newProduct)
+  {
+    // Validate product name
+    if (!ProductValidator.IsValidName(newProduct.Name))
+    {
+      return BadRequest("Product name is required and cannot be empty.");
+    }
+
+    // Validate product price
+    if (!ProductValidator.IsValidPrice(newProduct.Price))
+    {
+      return BadRequest("Product price must be greater than zero.");
+    }
+
+    // Check if product exists by name
+    if (_productService.ProductExistsByName(newProduct.Name))
+    {
+      return Conflict($"A product with the name '{newProduct.Name}' already exists.");
+    }
+
+    // Create and return the product
+    var product = _productService.CreateProduct(newProduct);
+    return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
+  }
+
+  // DELETE: /api/products/{id}
+  [HttpDelete("{id:guid}")]
+  public IActionResult DeleteProduct(Guid id)
+  {
+    var product = _productService.GetProductById(id);
+    if (product == null)
+    {
+      return NotFound($"Product with ID {id} not found.");
+    }
+
+    _productService.DeleteProduct(id);
+    return NoContent();
+  }
+
+  // PUT: /api/products/{id}
+  [HttpPut("{id:guid}")]
+  public IActionResult UpdateProduct(Guid id, UpdateProductDto updateProductData)
+  {
+    var product = _productService.GetProductById(id);
+    if (product == null)
+    {
+      return NotFound($"Product with ID {id} not found.");
+    }
+
+    // Validate updated product name
+    if (!ProductValidator.IsValidName(updateProductData.Name))
+    {
+      return BadRequest("Product name is required and cannot be empty.");
+    }
+
+    // Validate updated product price
+    if (!ProductValidator.IsValidPrice(updateProductData.Price ?? 0))
+    {
+      return BadRequest("Product price must be greater than zero.");
+    }
+
+    // Update product
+    _productService.UpdateProduct(id, updateProductData);
+    return NoContent();
+  }
+}
+
+```
+
+- Modify the Program.cs
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Register ProductService as a service
+builder.Services.AddSingleton<IProductService, ProductService>();
+
+// Add services to the container
+builder.Services.AddControllers(); // Add MVC controllers
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline
+app.UseHttpsRedirection();
+
+app.MapControllers();
+
+app.Run();
+```
+
+##### P20. Concept => Query Parameters
+
+In an **ASP.NET Core** controller, you can retrieve query parameters directly using the `HttpRequest` object, or by defining them as method parameters in your controller action. Here are a few ways to get query parameters in a controller.
+
+###### 1. **Using Method Parameters**
+
+If your action method is handling a query parameter, you can specify the query parameter as a method parameter in the action, and ASP.NET Core will automatically bind it.
+
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    // GET: /api/products?category=electronics&page=1
+    [HttpGet]
+    public IActionResult GetProducts(string category, int page = 1)
+    {
+        // Use category and page query parameters in your logic
+        return Ok(new { Category = category, Page = page });
+    }
+}
+```
+
+###### 2. **Using `HttpContext.Request.Query`**
+
+You can also use the `HttpContext.Request.Query` to retrieve query parameters manually.
+
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    // GET: /api/products
+    [HttpGet]
+    public IActionResult GetProducts()
+    {
+        var category = HttpContext.Request.Query["category"].ToString();
+        var page = HttpContext.Request.Query["page"].ToString();
+
+        return Ok(new { Category = category, Page = page });
+    }
+}
+```
+
+###### 3. **Using `[FromQuery]` Attribute**
+
+You can also use the `[FromQuery]` attribute to specify that a parameter should be retrieved from the query string explicitly. This is particularly useful if you want to bind complex types or collections from the query parameters.
+
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    // GET: /api/products?category=electronics&page=1
+    [HttpGet]
+    public IActionResult GetProducts([FromQuery] string category, [FromQuery] int page = 1)
+    {
+        return Ok(new { Category = category, Page = page });
+    }
+}
+```
+
+###### 4. **Using Custom Model Binding for Complex Query Parameters**
+
+If you have a more complex object, you can define a class and bind the query parameters to that object:
+
+```csharp
+public class ProductFilter
+{
+    public string? Category { get; set; }
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+}
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    // GET: /api/products?category=electronics&page=1&pageSize=20
+    [HttpGet]
+    public IActionResult GetProducts([FromQuery] ProductFilter filter)
+    {
+        return Ok(new { filter.Category, filter.Page, filter.PageSize });
+    }
+}
+```
+
+In this case, **`ProductFilter`** will automatically map query parameters like `?category=electronics&page=1&pageSize=20` to the class properties.
+
+###### Summary
+
+- You can directly bind query parameters using method parameters in the action, which is the most common approach.
+- Use `[FromQuery]` for more explicit parameter binding or to handle complex query string values.
+- For complex models, create a class and bind it using `[FromQuery]` to make the code more organized and easier to maintain.
+
+##### P21. Product API => Add Pagination
+
+```csharp
+// GET http://localhost:5079/api/products?pageNumber=1&pageSize=2
+
+// Method-1
+public IActionResult GetAllProducts(int pageNumber=1, int pageSize=5)
+  {
+    Console.WriteLine($"{pageNumber} and {pageSize}");
+
+    var products = _productService.GetAllProducts();
+    return Ok(products);
+  }
+
+// Method-1
+public IActionResult GetAllProducts([FromQuery] int pageNumber=1, [FromQuery] int pageSize=10)
+  {
+    Console.WriteLine($"{pageNumber} and {pageSize}");
+
+    var products = _productService.GetAllProducts();
+    return Ok(products);
+  }
+```
+
+```csharp
+public interface IProductService
+{
+  PagedResult<ProductDto> GetAllProducts(int pageNumber, int pageSize);
+  ProductDto GetProductById(Guid id);
+  Product CreateProduct(CreateProductDto newProduct);
+  bool ProductExistsByName(string name);
+  void DeleteProduct(Guid id);
+  void UpdateProduct(Guid id, UpdateProductDto updateProduct);
+}
+
+// add a model for PagedResult
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace asp_ecommerce_web_api.Models
+{
+    public class PagedResult<T>
+    {
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalItems { get; set; }
+        public IEnumerable<T> Items { get; set; }
+    }
+
+}
+
+// Create a service for pagination
+  public PagedResult<ProductDto> GetAllProducts(int pageNumber, int pageSize)
+  {
+
+    var totalProducts = _products.Count();
+    var paginatedProducts = _products.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(p => new ProductDto
+    {
+      Id = p.Id,
+      Name = p.Name,
+      Description = p.Description,
+      Price = p.Price,
+      CreatedAt = p.CreatedAt
+    }).ToList();
+
+
+    return new PagedResult<ProductDto>
+    {
+      PageNumber = pageNumber,
+      PageSize = pageSize,
+      TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize),
+      TotalItems = totalProducts,
+      Items = paginatedProducts
+    };
+
+  }
+
+// adjust the controller
+// GET: /api/products
+  [HttpGet]
+  public IActionResult GetAllProducts([FromQuery] int pageNumber=1, [FromQuery] int pageSize=3)
+  {
+    if (pageNumber < 1 || pageSize < 1)
+    {
+      return BadRequest("Page number and page size must be greater than 0.");
+    }
+
+    var paginatedResult = _productService.GetAllProducts(pageNumber, pageSize);
+    return Ok(paginatedResult);
+  }
+
+```
+
+##### P22. Product API => Search Product
+
+```csharp
+// Model
+public interface IProductService
+{
+  PagedResult<ProductDto> GetAllProducts(int pageNumber, int pageSize, string? SearchQuery);
+  ProductDto GetProductById(Guid id);
+  Product CreateProduct(CreateProductDto newProduct);
+  bool ProductExistsByName(string name);
+  void DeleteProduct(Guid id);
+  void UpdateProduct(Guid id, UpdateProductDto updateProduct);
+}
+
+// Service
+ public PagedResult<ProductDto> GetAllProducts(int pageNumber, int pageSize, string? searchQuery = null)
+  {
+    var filteredProducts = _products.AsQueryable();
+
+    // Apply search filter if a searchQuery is provided
+    if (!string.IsNullOrEmpty(searchQuery))
+    {
+      filteredProducts = filteredProducts.Where(p => p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+    }
+
+    var totalProducts = filteredProducts.Count();
+    var paginatedProducts = filteredProducts.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(p => new ProductDto
+    {
+      Id = p.Id,
+      Name = p.Name,
+      Description = p.Description,
+      Price = p.Price,
+      CreatedAt = p.CreatedAt
+    }).ToList();
+
+
+    return new PagedResult<ProductDto>
+    {
+      PageNumber = pageNumber,
+      PageSize = pageSize,
+      TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize),
+      TotalItems = totalProducts,
+      Items = paginatedProducts
+    };
+
+  }
+
+
+// Controller
+
+// GET: /api/products
+  [HttpGet]
+  public IActionResult GetAllProducts([FromQuery] int pageNumber=1, [FromQuery] int pageSize=3, [FromQuery] string? searchQuery=null)
+  {
+    if (pageNumber < 1 || pageSize < 1)
+    {
+      return BadRequest("Page number and page size must be greater than 0.");
+    }
+
+    var paginatedResult = _productService.GetAllProducts(pageNumber, pageSize, searchQuery);
+    return Ok(paginatedResult);
+  }
+```
+
+```http
+Example Usage:
+To get paginated products:
+GET /api/products?pageNumber=1&pageSize=5
+
+To search products by name:
+GET /api/products?searchQuery=Laptop&pageNumber=1&pageSize=5
+```
+
+##### P23. Product API => Sorting by Name, Price, CreatedAt
+
+```csharp
+// Model
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace asp_ecommerce_web_api.Models
+{
+    public class PagedResult<T>
+    {
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalItems { get; set; }
+        public string? SearchQuery { get; set; } = null;
+        public string? SortBy { get; set; } = null;
+        public string? SortOrder { get; set; } = "asc";
+        public IEnumerable<T> Items { get; set; }
+    }
+
+}
+
+// Services
+public interface IProductService
+{
+  PagedResult<ProductDto> GetAllProducts(int pageNumber, int pageSize, string? SearchQuery, string? sortBy, string? sortOrder);
+  ProductDto GetProductById(Guid id);
+  Product CreateProduct(CreateProductDto newProduct);
+  bool ProductExistsByName(string name);
+  void DeleteProduct(Guid id);
+  void UpdateProduct(Guid id, UpdateProductDto updateProduct);
+}
+
+public PagedResult<ProductDto> GetAllProducts(int pageNumber, int pageSize, string? searchQuery = null, string? sortBy = null, string? sortOrder = "asc")
+  {
+    var filteredProducts = _products.AsQueryable();
+
+    // Apply search filter if a searchQuery is provided
+    if (!string.IsNullOrEmpty(searchQuery))
+    {
+      filteredProducts = filteredProducts.Where(p => p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+    }
+
+    // Apply sorting based on the sortBy and sortOrder parameters
+    filteredProducts = sortBy?.ToLower() switch
+    {
+      "name" => sortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.Name) : filteredProducts.OrderBy(p => p.Name),
+      "price" => sortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.Price) : filteredProducts.OrderBy(p => p.Price),
+      "date" => sortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.CreatedAt) : filteredProducts.OrderBy(p => p.CreatedAt),
+      _ => filteredProducts.OrderBy(p => p.Name) // Default sorting by Name
+    };
+
+    var totalProducts = filteredProducts.Count();
+    var paginatedProducts = filteredProducts.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(p => new ProductDto
+    {
+      Id = p.Id,
+      Name = p.Name,
+      Description = p.Description,
+      Price = p.Price,
+      CreatedAt = p.CreatedAt
+    }).ToList();
+
+
+    return new PagedResult<ProductDto>
+    {
+      PageNumber = pageNumber,
+      PageSize = pageSize,
+      TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize),
+      TotalItems = totalProducts,
+      Items = paginatedProducts
+    };
+
+  }
+
+
+// Controller
+ // GET: /api/products
+  [HttpGet]
+  public IActionResult GetAllProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 3, [FromQuery] string? searchQuery = null, [FromQuery] string? sortBy = null, [FromQuery] string? sortOrder = "asc")
+  {
+    if (pageNumber < 1 || pageSize < 1)
+    {
+      return BadRequest("Page number and page size must be greater than 0.");
+    }
+
+    var paginatedResult = _productService.GetAllProducts(pageNumber, pageSize, searchQuery, sortBy, sortOrder);
+    return Ok(paginatedResult);
+  }
+```
+
+```http
+Example Requests:
+Sort by name ascending (default):
+GET /api/products?sortBy=name&sortOrder=asc
+
+Sort by name descending:
+GET /api/products?sortBy=name&sortOrder=desc
+
+Sort by price ascending:
+GET /api/products?sortBy=price&sortOrder=asc
+
+Sort by created date descending:
+GET /api/products?sortBy=date&sortOrder=desc
+```
+
+##### P24. Concept => Handle the parameters more cleaner way
+
+Handling method parameters in a cleaner and more maintainable way can be achieved by encapsulating them into a dedicated class or object. This approach simplifies method signatures, improves readability, and makes it easier to manage and extend parameters.
+
+##### P25. Product API => Handle the parameters more cleaner way
+
+```csharp
+// Create the following class in a model or DTOs folder (best thing to do) or Requests or Filter or Queries Folder
+public class ProductQueryParameters
+{
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+    public string? SearchQuery { get; set; } = null;
+    public string? SortBy { get; set; } = null;
+    public string? SortOrder { get; set; } = "asc";
+}
+
+// Change is controller
+  // GET: /api/products
+  [HttpGet]
+  public IActionResult GetAllProducts([FromQuery] ProductQueryParameters productQueryParameters)
+  {
+    if (productQueryParameters.PageNumber < 1 || productQueryParameters.PageSize < 1)
+    {
+      return BadRequest("Page number and page size must be greater than 0.");
+    }
+
+    var paginatedResult = _productService.GetAllProducts(productQueryParameters);
+    return Ok(paginatedResult);
+  }
+
+// Change is service
+public interface IProductService
+{
+  PagedResult<ProductDto> GetAllProducts(ProductQueryParameters productQueryParameters);
+  ProductDto GetProductById(Guid id);
+  Product CreateProduct(CreateProductDto newProduct);
+  bool ProductExistsByName(string name);
+  void DeleteProduct(Guid id);
+  void UpdateProduct(Guid id, UpdateProductDto updateProduct);
+}
+
+public PagedResult<ProductDto> GetAllProducts(ProductQueryParameters productQueryParameters)
+  {
+    var filteredProducts = _products.AsQueryable();
+
+    // Apply search filter if a searchQuery is provided
+    if (!string.IsNullOrEmpty(productQueryParameters.SearchQuery))
+    {
+      filteredProducts = filteredProducts.Where(p => p.Name.Contains(productQueryParameters.SearchQuery, StringComparison.OrdinalIgnoreCase));
+    }
+
+    // Apply sorting based on the sortBy and sortOrder parameters
+    filteredProducts = productQueryParameters.SortBy?.ToLower() switch
+    {
+      "name" => productQueryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.Name) : filteredProducts.OrderBy(p => p.Name),
+      "price" => productQueryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.Price) : filteredProducts.OrderBy(p => p.Price),
+      "date" => productQueryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.CreatedAt) : filteredProducts.OrderBy(p => p.CreatedAt),
+      _ => filteredProducts.OrderBy(p => p.Name) // Default sorting by Name
+    };
+
+    var totalProducts = filteredProducts.Count();
+    var paginatedProducts = filteredProducts.Skip((productQueryParameters.PageNumber - 1) * productQueryParameters.PageSize).Take(productQueryParameters.PageSize).Select(p => new ProductDto
+    {
+      Id = p.Id,
+      Name = p.Name,
+      Description = p.Description,
+      Price = p.Price,
+      CreatedAt = p.CreatedAt
+    }).ToList();
+
+
+    return new PagedResult<ProductDto>
+    {
+      PageNumber = productQueryParameters.PageNumber,
+      PageSize = productQueryParameters.PageSize,
+      TotalPages = (int)Math.Ceiling(totalProducts / (double)productQueryParameters.PageSize),
+      TotalItems = totalProducts,
+      Items = paginatedProducts
+    };
+
+  }
+
+// 4. Update the PagedResult Class. You can remove redundant parameters from PagedResult, as they are already encapsulated in ProductQueryParameters.
+
+public class PagedResult<T>
+{
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages { get; set; }
+    public int TotalItems { get; set; }
+    public IEnumerable<T> Items { get; set; }
+}
+
+```
+
+##### P26. Concept => Validation with Data Annotations Validators
+
+To add comprehensive data annotations to your DTOs in ASP.NET Core, we can use attributes that are part of the System.ComponentModel.DataAnnotations namespace. These annotations are primarily used for validation, which makes your code more robust by ensuring that incoming data follows certain rules.
+
+- [visit here](https://learn.microsoft.com/en-us/aspnet/mvc/overview/older-versions-1/models-data/validation-with-the-data-annotation-validators-cs)
+- what happen if you do not pass user name and it creates the user? it should be a bad request 400
+- add the data annotation to the DTOs
+<!-- - add the nuget package (MinimalApis.Extensions) from the package manager (add the vsextension) -->
+
+##### P27. Product API => Add Input Validation to the DTOs
+
+```csharp
+
+using System.ComponentModel.DataAnnotations;
+
+public class CreateProductDto
+{
+    [Required(ErrorMessage = "Product name is required.")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Product name must be between 2 and 100 characters.")]
+    public string Name { get; set; }
+
+    [Required(ErrorMessage = "Product price is required.")]
+    [Range(0.01, double.MaxValue, ErrorMessage = "Product price must be greater than zero.")]
+    public decimal Price { get; set; }
+
+    [StringLength(500, ErrorMessage = "Description cannot be longer than 500 characters.")]
+    public string? Description { get; set; }
+}
+
+using System.ComponentModel.DataAnnotations;
+
+public class UpdateProductDto
+{
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Product name must be between 2 and 100 characters.")]
+    public string? Name { get; set; }
+
+    [Range(0.01, double.MaxValue, ErrorMessage = "Product price must be greater than zero.")]
+    public decimal? Price { get; set; }
+
+    [StringLength(500, ErrorMessage = "Description cannot be longer than 500 characters.")]
+    public string? Description { get; set; }
+}
+
+using System.ComponentModel.DataAnnotations;
+
+public class ProductDto
+{
+    [Required]
+    public Guid Id { get; set; }
+
+    [Required(ErrorMessage = "Product name is required.")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Product name must be between 2 and 100 characters.")]
+    public string Name { get; set; }
+
+    [Required(ErrorMessage = "Product price is required.")]
+    [Range(0.01, double.MaxValue, ErrorMessage = "Product price must be greater than zero.")]
+    public decimal Price { get; set; }
+
+    [StringLength(500, ErrorMessage = "Description cannot be longer than 500 characters.")]
+    public string? Description { get; set; }
+
+    [Required]
+    public DateTime CreatedAt { get; set; }
+}
+
+
+public class PagedResult<T>
+{
+    [Range(1, int.MaxValue, ErrorMessage = "Page number must be at least 1.")]
+    public int PageNumber { get; set; }
+
+    [Range(1, int.MaxValue, ErrorMessage = "Page size must be at least 1.")]
+    public int PageSize { get; set; }
+
+    public int TotalPages { get; set; }
+    public int TotalItems { get; set; }
+    public IEnumerable<T> Items { get; set; }
+}
+
+```
+
+- [Required]: Ensures that the Name and Price fields are not null or empty.
+- [StringLength]: Enforces the minimum and maximum length of the Name and Description.
+- [Range]: Ensures that Price is greater than zero.
+
+- more detailed example
+
+```csharp
+using System.ComponentModel.DataAnnotations;
+
+public class User
+{
+  public Guid UserId { get; set; }
+
+  [Required(ErrorMessage = "User Name is Required")]
+  [MaxLength(32, ErrorMessage = "User Name must be less than 32 characters")]
+  [MinLength(2, ErrorMessage = "User Name must be at least 2 characters")]
+  public required string Name { get; set; }
+
+  [EmailAddress(ErrorMessage = "User Email is not a valid email")]
+
+  public required string Email { get; set; }
+
+  [MinLength(6, ErrorMessage = "User Password must be at least 2 characters")]
+  public required string Password { get; set; }
+  public string Address { get; set; } = string.Empty;
+  public string Image { get; set; } = string.Empty;
+  public bool IsAdmin { get; set; }
+  public bool IsBanned { get; set; }
+  public DateTime CreatedAt { get; set; }
+}
+```
+
+##### P28. Concept => Exception Handling
+
+```csharp
+// Controllers/UserController.cs
+   public IActionResult GetAllUsers()
+        {
+            try
+            {
+                var users = _userService.GetAllUsersService();
+                if (users.ToList().Count < 1)
+                {
+                    return NotFound();
+                }
+                return Ok(new { message = "Users retrieved successfully", data = users });
+            }
+            catch (Exception ex)
+            {
+
+                // Log the exception for debugging and monitoring purposes
+                Console.WriteLine($"An error occurred while retrieving users: {ex.Message}");
+
+                // Return a server error response with a meaningful error message
+                return StatusCode(500, "An error occurred while processing your request. Please try again later.");
+            }
+        }
+```
+
+##### P29. Product API => Add Exception Handling
+
+```csharp
+// Service.cs
+public PagedResult<ProductDto> GetAllProducts(ProductQueryParameters productQueryParameters)
+{
+    try
+    {
+        var filteredProducts = _products.AsQueryable();
+
+        // Apply search filter if a searchQuery is provided
+        if (!string.IsNullOrEmpty(productQueryParameters.SearchQuery))
+        {
+            filteredProducts = filteredProducts.Where(p => p.Name.Contains(productQueryParameters.SearchQuery, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Apply sorting based on the sortBy and sortOrder parameters
+        filteredProducts = productQueryParameters.SortBy?.ToLower() switch
+        {
+            "name" => productQueryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.Name) : filteredProducts.OrderBy(p => p.Name),
+            "price" => productQueryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.Price) : filteredProducts.OrderBy(p => p.Price),
+            "date" => productQueryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.CreatedAt) : filteredProducts.OrderBy(p => p.CreatedAt),
+            _ => filteredProducts.OrderBy(p => p.Name) // Default sorting by Name
+        };
+
+        var totalProducts = filteredProducts.Count(); // Synchronous Count for in-memory collection
+        var paginatedProducts = filteredProducts
+            .Skip((productQueryParameters.PageNumber - 1) * productQueryParameters.PageSize)
+            .Take(productQueryParameters.PageSize)
+            .Select(p => new ProductDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                CreatedAt = p.CreatedAt
+            })
+            .ToList(); // Synchronous ToList
+
+        return new PagedResult<ProductDto>
+        {
+            PageNumber = productQueryParameters.PageNumber,
+            PageSize = productQueryParameters.PageSize,
+            TotalPages = (int)Math.Ceiling(totalProducts / (double)productQueryParameters.PageSize),
+            TotalItems = totalProducts,
+            Items = paginatedProducts
+        };
+    }
+    catch (Exception ex)
+    {
+        // Log the exception (optional)
+        // _logger.LogError(ex, "Error occurred while getting products");
+
+        // Re-throw the exception to be handled at a higher level or return a custom result
+        throw new ApplicationException("An error occurred while retrieving products.", ex);
+    }
+}
+
+//Controller.cs
+[HttpGet]
+public IActionResult GetAllProducts([FromQuery] ProductQueryParameters productQueryParameters)
+{
+    try
+    {
+        if (productQueryParameters.PageNumber < 1 || productQueryParameters.PageSize < 1)
+        {
+            return BadRequest("Page number and page size must be greater than 0.");
+        }
+
+        var paginatedResult = _productService.GetAllProducts(productQueryParameters);
+        return Ok(paginatedResult);
+    }
+    catch (ApplicationException ex)
+    {
+        // Return a custom error response
+        return StatusCode(500, new { Message = ex.Message });
+    }
+    catch (Exception ex)
+    {
+        // Log the error (optional)
+        // _logger.LogError(ex, "An unexpected error occurred");
+
+        // Return a generic error message
+        return StatusCode(500, new { Message = "An unexpected error occurred. Please try again later." });
+    }
+}
+
+```
+
+##### P30 Concept => Centralized Error Response
+
+```csharp
+public class ApiResponse<T>
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public T? Data { get; set; }
+    public List<string>? Errors { get; set; }
+
+    public ApiResponse(bool success, string message, T? data = default, List<string>? errors = null)
+    {
+        Success = success;
+        Message = message;
+        Data = data;
+        Errors = errors;
+    }
+
+    public static ApiResponse<T> SuccessResponse(string message, T? data = default)
+    {
+        return new ApiResponse<T>(true, message, data);
+    }
+
+    public static ApiResponse<T> ErrorResponse(string message, List<string>? errors = null)
+    {
+        return new ApiResponse<T>(false, message, default, errors);
+    }
+}
+
+// Controller
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    private readonly IProductService _productService;
+
+    public ProductsController(IProductService productService)
+    {
+        _productService = productService;
+    }
+
+    // GET: /api/products
+    [HttpGet]
+    public IActionResult GetAllProducts([FromQuery] ProductQueryParameters productQueryParameters)
+    {
+        try
+        {
+            var paginatedResult = _productService.GetAllProducts(productQueryParameters);
+            return Ok(ApiResponse<PagedResult<ProductDto>>.SuccessResponse("Products fetched successfully", paginatedResult));
+        }
+        catch (Exception ex)
+        {
+            // Log the error (optional)
+            // _logger.LogError(ex, "An unexpected error occurred");
+
+            return StatusCode(500, ApiResponse<object>.ErrorResponse("An error occurred while fetching products.", new List<string> { ex.Message }));
+        }
+    }
+
+    // POST: /api/products
+    [HttpPost]
+    public IActionResult CreateProduct([FromBody] CreateProductDto newProduct)
+    {
+        if (string.IsNullOrEmpty(newProduct.Name))
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse("Product name is required"));
+        }
+
+        if (newProduct.Price <= 0)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse("Product price must be greater than zero"));
+        }
+
+        try
+        {
+            var createdProduct = _productService.CreateProduct(newProduct);
+            return CreatedAtAction(nameof(GetAllProducts), new { id = createdProduct.Id }, ApiResponse<ProductDto>.SuccessResponse("Product created successfully", createdProduct));
+        }
+        catch (Exception ex)
+        {
+            // Log the error (optional)
+            return StatusCode(500, ApiResponse<object>.ErrorResponse("An error occurred while creating the product.", new List<string> { ex.Message }));
+        }
+    }
+
+    // PUT: /api/products/{id}
+    [HttpPut("{id:guid}")]
+    public IActionResult UpdateProduct(Guid id, [FromBody] UpdateProductDto updatedProduct)
+    {
+        try
+        {
+            var product = _productService.UpdateProduct(id, updatedProduct);
+            return Ok(ApiResponse<ProductDto>.SuccessResponse("Product updated successfully", product));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse("Product not found", new List<string> { ex.Message }));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<object>.ErrorResponse("An error occurred while updating the product.", new List<string> { ex.Message }));
+        }
+    }
+
+    // DELETE: /api/products/{id}
+    [HttpDelete("{id:guid}")]
+    public IActionResult DeleteProduct(Guid id)
+    {
+        try
+        {
+            _productService.DeleteProduct(id);
+            return Ok(ApiResponse<object>.SuccessResponse("Product deleted successfully"));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse("Product not found", new List<string> { ex.Message }));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<object>.ErrorResponse("An error occurred while deleting the product.", new List<string> { ex.Message }));
+        }
+    }
+}
+
+// Services
+public class ProductService : IProductService
+{
+    private readonly List<Product> _products;
+
+    public ProductService()
+    {
+        _products = new List<Product>(); // Example: In-memory product list
+    }
+
+    public ProductDto CreateProduct(CreateProductDto newProduct)
+    {
+        // Simulate checking for a product with the same name
+        var existingProduct = _products.FirstOrDefault(p => p.Name.Equals(newProduct.Name, StringComparison.OrdinalIgnoreCase));
+
+        if (existingProduct != null)
+        {
+            // Throwing a custom exception if the product name already exists
+            throw new InvalidOperationException($"A product with the name '{newProduct.Name}' already exists.");
+        }
+
+        var product = new Product
+        {
+            Id = Guid.NewGuid(),
+            Name = newProduct.Name,
+            Price = newProduct.Price,
+            Description = newProduct.Description,
+            CreatedAt = DateTime.Now
+        };
+
+        _products.Add(product);
+
+        return new ProductDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Price = product.Price,
+            Description = product.Description,
+            CreatedAt = product.CreatedAt
+        };
+    }
+
+    // Other CRUD methods...
+}
+```
+
+##### P31. Concept => Asynchronous
+
+Asycnhornous improves scalability by freeing up threads for other requests while waiting for IO-bound operations to complete.
+
+Converting a synchronous method to an asynchronous one in C# typically involves utilizing the `async` and `await` keywords, as well as leveraging asynchronous APIs like `Task`, `Task<T>`, and others.
+
+Here’s a step-by-step guide on how to convert your synchronous service methods to asynchronous ones:
+
+###### Steps to Convert Sync to Async
+
+1. **Add the `async` Keyword**:
+
+   - The method signature should include the `async` keyword.
+
+2. **Use `Task` or `Task<T>` as Return Type**:
+
+   - For methods that return `void` synchronously, use `Task`.
+   - For methods that return a specific type (like a list of products), use `Task<T>`, where `T` is the return type.
+
+3. **Use `await` with Asynchronous Methods**:
+
+   - Replace blocking calls (e.g., `.ToList()`, `.Find()`) with their asynchronous counterparts (e.g., `ToListAsync()`, `FirstOrDefaultAsync()`).
+
+4. **Leverage Asynchronous Libraries**:
+   - For database operations (e.g., Entity Framework), use asynchronous methods like `ToListAsync()`, `FirstOrDefaultAsync()`, etc.
+
+###### Example: Converting `GetAllProducts` to Async
+
+Here’s how you can convert the synchronous `GetAllProducts` method to an asynchronous one:
+
+###### **Synchronous Method**
+
+```csharp
+public PagedResult<ProductDto> GetAllProducts(ProductQueryParameters queryParameters)
+{
+    var filteredProducts = _products.AsQueryable();
+
+    // Apply search filter
+    if (!string.IsNullOrEmpty(queryParameters.SearchQuery))
+    {
+        filteredProducts = filteredProducts.Where(p => p.Name.Contains(queryParameters.SearchQuery, StringComparison.OrdinalIgnoreCase));
+    }
+
+    // Apply sorting
+    filteredProducts = queryParameters.SortBy?.ToLower() switch
+    {
+        "name" => queryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.Name) : filteredProducts.OrderBy(p => p.Name),
+        "price" => queryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.Price) : filteredProducts.OrderBy(p => p.Price),
+        "date" => queryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.CreatedAt) : filteredProducts.OrderBy(p => p.CreatedAt),
+        _ => filteredProducts.OrderBy(p => p.Name)
+    };
+
+    var totalProducts = filteredProducts.Count();
+    var paginatedProducts = filteredProducts.Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize)
+        .Take(queryParameters.PageSize)
+        .Select(p => new ProductDto
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Description = p.Description,
+            Price = p.Price,
+            CreatedAt = p.CreatedAt
+        })
+        .ToList();
+
+    return new PagedResult<ProductDto>
+    {
+        PageNumber = queryParameters.PageNumber,
+        PageSize = queryParameters.PageSize,
+        TotalPages = (int)Math.Ceiling(totalProducts / (double)queryParameters.PageSize),
+        TotalItems = totalProducts,
+        Items = paginatedProducts
+    };
+}
+```
+
+###### **Converted Asynchronous Method**
+
+To convert this method, let’s assume you are using Entity Framework (which has async methods like `ToListAsync()`, `CountAsync()`). Here's the async version of this method:
+
+```csharp
+public async Task<PagedResult<ProductDto>> GetAllProductsAsync(ProductQueryParameters queryParameters)
+{
+    var filteredProducts = _products.AsQueryable();
+
+    // Apply search filter
+    if (!string.IsNullOrEmpty(queryParameters.SearchQuery))
+    {
+        filteredProducts = filteredProducts.Where(p => p.Name.Contains(queryParameters.SearchQuery, StringComparison.OrdinalIgnoreCase));
+    }
+
+    // Apply sorting
+    filteredProducts = queryParameters.SortBy?.ToLower() switch
+    {
+        "name" => queryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.Name) : filteredProducts.OrderBy(p => p.Name),
+        "price" => queryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.Price) : filteredProducts.OrderBy(p => p.Price),
+        "date" => queryParameters.SortOrder == "desc" ? filteredProducts.OrderByDescending(p => p.CreatedAt) : filteredProducts.OrderBy(p => p.CreatedAt),
+        _ => filteredProducts.OrderBy(p => p.Name)
+    };
+
+    var totalProducts = await filteredProducts.CountAsync(); // Asynchronous count
+    var paginatedProducts = await filteredProducts.Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize)
+        .Take(queryParameters.PageSize)
+        .Select(p => new ProductDto
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Description = p.Description,
+            Price = p.Price,
+            CreatedAt = p.CreatedAt
+        })
+        .ToListAsync(); // Asynchronous ToList
+
+    return new PagedResult<ProductDto>
+    {
+        PageNumber = queryParameters.PageNumber,
+        PageSize = queryParameters.PageSize,
+        TotalPages = (int)Math.Ceiling(totalProducts / (double)queryParameters.PageSize),
+        TotalItems = totalProducts,
+        Items = paginatedProducts
+    };
+}
+```
+
+- Key Points
+
+1. **Async Task**: Use `Task<T>` for methods returning data and `Task` for void methods.
+2. **Await Asynchronous Methods**: Ensure that any method that involves IO operations (e.g., database access) uses its asynchronous counterpart.
+3. **No Synchronous Blocking**: Avoid synchronous methods like `.ToList()` or `.Count()` when performing IO-bound tasks like database queries.
+
+This conversion improves scalability by freeing up threads for other requests while waiting for IO-bound operations to complete.
+
+##### P32. Product API => Asynchronous
+
+### 4. Complete Ecommerce REST API
 
 ### 2 Concept: What is Entity and EF Core?
 
@@ -575,9 +3088,8 @@ public class User
 
 ![alt text](image-17.png)
 
-- Create a DTO to get the necessary data to create an user
-
 ```csharp
+// Models/Dtos/users/CreateUserDto.cs => What data you need to create an user?
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -591,11 +3103,9 @@ public class CreateUserDto
     public string Address { get; set; } = string.Empty;
     public string? Image { get; set; } = string.Empty;
 }
-```
 
-- Create a Controller to handle request for creating an user
-
-```csharp
+// Create a Controller to handle request for creating an user
+// POST => api/users => Create an User
 [HttpPost]
 public async Task<IActionResult> CreateUser([FromBody] CreateUserDto newUser)
 {
@@ -603,14 +3113,9 @@ public async Task<IActionResult> CreateUser([FromBody] CreateUserDto newUser)
     var response = new { Message = "An user created successfully", User = user };
     return Created($"/api/users/{user.UserId}", response);
 }
-```
 
-- Create a Service to store the user in DB
-
-  - AddAsync: Marks the entity as to be inserted in the context.
-  - SaveChangesAsync: Actually commits the changes (including the new user) to the database.
-
-```csharp
+// Create a Service to store the user in DB
+//  Services/UserService.cs
 public async Task<User> CreateUserAsync(CreateUserDto newUserDto)
 {
     // Hash the password using a library like BCrypt.Net
@@ -633,22 +3138,14 @@ public async Task<User> CreateUserAsync(CreateUserDto newUserDto)
     await _appDbContext.SaveChangesAsync();
     return user;
 }
-```
 
-#### 5.5 How to console the data in api
-
-```
-dotnet add package Newtonsoft.Json
-using Newtonsoft.Json;
- Console.WriteLine("Received user: " + JsonConvert.SerializeObject(user));
 ```
 
 #### 5.6 How to Respond with the desried data
 
-- Respond with the desried data after the user is created
-
 ```csharp
-// Create the Models/UserDto.cs
+// Create the Models/UserDto.cs => Create a dto/template for what you want to return
+// DTOs/users/CreateUser.cs
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -678,7 +3175,6 @@ namespace review_ecommerce_api.Models
   public async Task<UserDto> CreateUserAsync(CreateUserDto newUserDto)
 {
 
- // Hash the password using a library like BCrypt.Net
     var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newUserDto.Password);
 
     var user = new User
@@ -961,8 +3457,6 @@ namespace review_ecommerce_api.Models
 ```
 
 #### 5.10 Add Exception Handling
-
-- Create the UserDto
 
 ```csharp
 // Controller
@@ -1550,8 +4044,6 @@ GET http://localhost:5109/api/users?pageNumber=2&pageSize=5&searchTerm=anis&sort
 
 #### 5.16 PUT => /api/users/{userId} => Update a single user by userId
 
-- create a dto for update data
-
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -1586,11 +4078,8 @@ namespace review_ecommerce_api.Models
     public string? Image { get; set; } = string.Empty;
   }
 }
-```
 
-- create the controller method
-
-```csharp
+// Controller
   // PUT => /api/users/{userId} => update a single user by Id
   [HttpPut("{userId:guid}")]
   public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] UpdateUserDto userData)
@@ -1619,11 +4108,9 @@ namespace review_ecommerce_api.Models
           return ApiResponse.ServerError("An unexpected error occurred.");
       }
   }
-```
 
-- create the Service method
 
-```csharp
+// Service
   public async Task<UserDto?> UpdateUserByIdAsync(Guid userId, UpdateUserDto userData)
     {
         try
@@ -1673,7 +4160,6 @@ namespace review_ecommerce_api.Models
 - test the update
 
 ```
-###
 
 PUT  http://localhost:5109/api/users/5673479e-adf9-4157-867c-efc72ef44a2e
 Content-Type: application/json
@@ -2046,9 +4532,405 @@ namespace review_ecommerce_api.Services
 
 #### 5.29 CORS Setup (working)
 
-### 6 Category and Product API
+### 6. Profile API (Not Ready)
 
-#### 6.1 Create the Category and Product Entity
+#### 6.1 Define Entity
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace review_ecommerce_api.EFCore
+{
+    public class UserProfile
+    {
+         public Guid ProfileId { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        // public string Occupation { get; set; } = string.Empty;
+        // public string PhoneNumber { get; set; } = string.Empty;
+        // public string ProfilePictureUrl { get; set; } = string.Empty;
+        // public string Bio { get; set; } = string.Empty;
+        // public string Gender { get; set; } = string.Empty;
+        // public DateTime DateOfBirth { get; set; }
+        // public string TwitterHandle { get; set; } = string.Empty;
+        // public string LinkedInProfile { get; set; } = string.Empty;
+        // public string WebsiteUrl { get; set; } = string.Empty;
+        // public string Interests { get; set; } = string.Empty;
+        // public string Location { get; set; } = string.Empty;
+
+        public User User { get; set; } // 1-to-1 relationship with User
+
+
+    }
+}
+
+// Update the User Entity
+
+public Guid ProfileId { get; set; }
+public UserProfile UserProfile{ get; set; } // 1-1 with UserProfile
+```
+
+- update the context
+
+```csharp
+
+// DbSet properties
+
+public DbSet<Profile> Profiles { get; set; }
+
+modelBuilder.Entity<UserProfile>(entity =>
+{
+    entity.HasKey(up => up.ProfileId); // Primary Key configuration
+    entity.Property(up => up.ProfileId).HasDefaultValueSql("uuid_generate_v4()"); // Generate UUID for new records
+});
+
+
+// One-to-One: User <-> Profile
+modelBuilder.Entity<User>()
+      .HasOne(u => u.UserProfile)
+      .WithOne(up => up.User)
+      .HasForeignKey<User>(u => u.ProfileId);
+```
+
+#### 6.2 Create CreateUserProfileDto, UserProfileDto and Update Dtos
+
+Updating your DTOs ensures that both the User and the associated Profile are handled together during create and update operations, following the 1-to-1 relationship between them. This way, when a user is created or updated, their profile is also processed accordingly.
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace review_ecommerce_api.Models.profiles
+{
+    public class CreateUserProfileDto
+    {
+
+        [Required(ErrorMessage = "First name is required.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required.")]
+        public string LastName { get; set; } = string.Empty;
+
+        // [Phone(ErrorMessage = "Invalid phone number.")]
+        // public string PhoneNumber { get; set; } = string.Empty;
+
+        // [Url(ErrorMessage = "Invalid URL format for Profile Picture.")]
+        // public string ProfilePictureUrl { get; set; } = string.Empty;
+
+        // [StringLength(500, ErrorMessage = "Bio can't exceed 500 characters.")]
+        // public string Bio { get; set; } = string.Empty;
+
+        // [Required(ErrorMessage = "Gender is required.")]
+        // public string Gender { get; set; } = string.Empty;
+
+        // [Required(ErrorMessage = "Date of Birth is required.")]
+        // public DateTime DateOfBirth { get; set; }
+
+        // [Url(ErrorMessage = "Invalid URL format for Twitter Handle.")]
+        // public string TwitterHandle { get; set; } = string.Empty;
+
+        // [Url(ErrorMessage = "Invalid URL format for LinkedIn Profile.")]
+        // public string LinkedInProfile { get; set; } = string.Empty;
+
+        // public string Occupation { get; set; } = string.Empty;
+        // public string WebsiteUrl { get; set; } = string.Empty;
+        // public string Interests { get; set; } = string.Empty;
+        // public string Location { get; set; } = string.Empty;
+
+    }
+}
+
+// Update the CreateUser Dto
+public class CreateUserDto
+    {
+        [Required(ErrorMessage = "Username is required.")]
+        public string UserName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid Email Address.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required.")]
+        [StringLength(100, ErrorMessage = "Password must be between 6 and 100 characters.", MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
+
+        [StringLength(255, ErrorMessage = "Address can't exceed 255 characters.")]
+        public string Address { get; set; } = string.Empty;
+
+        public string Image { get; set; } = string.Empty;
+
+        // Profile information
+        [Required]
+        public CreateUserProfileDto UserProfile { get; set; } = new CreateUserProfileDto();
+    }
+
+
+// Create the UserProfileDto
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace review_ecommerce_api.Models.profiles
+{
+    public class UserProfileDto
+    {
+        public Guid ProfileId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        // public string PhoneNumber { get; set; }
+        // public string ProfilePictureUrl { get; set; }
+        // public string Bio { get; set; }
+        // public string Gender { get; set; }
+        // public DateTime DateOfBirth { get; set; }
+        // public string TwitterHandle { get; set; }
+        // public string LinkedInProfile { get; set; }
+        // public string Occupation { get; set; }
+        // public string WebsiteUrl { get; set; }
+        // public string Interests { get; set; }
+        // public string Location { get; set; }
+    }
+}
+
+// Update the UserDto
+public class UserDto
+{
+    public Guid UserId { get; set; }
+    public string UserName { get; set; }
+    public string Email { get; set; }
+    public string Address { get; set; }
+    public string Image { get; set; }
+
+    public UserProfileDto UserProfile { get; set; } = new UserProfileDto();
+}
+
+
+```
+
+#### 6.3 Update User Controllers and Services
+
+- update the atomapper
+
+```csharp
+
+
+  // User mappings
+  CreateMap<User, UserDto>()
+      .ForMember(dest => dest.UserProfile, opt => opt.MapFrom(src => src.UserProfile));  // Map UserProfile as part of User
+  CreateMap<CreateUserDto, User>()
+      .ForMember(dest => dest.UserProfile, opt => opt.MapFrom(src => src.UserProfile));  // Map Profile as part of User
+  CreateMap<UpdateUserDto, User>()
+      .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+  // .ForMember(dest => dest.UserProfile, opt => opt.MapFrom(src => src.UserProfile));  // Map Profile as part of User
+
+  // Profile mappings
+            CreateMap<UserProfile, UserProfileDto>().ReverseMap();
+            CreateMap<CreateUserProfileDto, UserProfile>();
+```
+
+#### 6.4 Update User Controllers and Services
+
+```csharp
+
+// no need to change in Controllers
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using api.Controllers;
+using Microsoft.AspNetCore.Mvc;
+using review_ecommerce_api.Models;
+using review_ecommerce_api.Services;
+
+namespace review_ecommerce_api.Controllers
+{
+    [ApiController, Route("/api/users")]
+    public class UserController : ControllerBase
+    {
+        private readonly UserService _userService;
+        public UserController(UserService userService)
+        {
+            _userService = userService;
+        }
+
+        // POST => /api/users => Create an User
+        [HttpPost]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto newUser)
+        {
+            if (!ModelState.IsValid)
+            {
+                return ApiResponse.BadRequest("Invalid User Data");
+            }
+
+            try
+            {
+                var user = await _userService.CreateUserAsync(newUser);
+                return ApiResponse.Created(user, "User created successfully");
+            }
+            catch (ApplicationException ex)
+            {
+                return ApiResponse.Conflict(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception : {ex.Message}");
+                return ApiResponse.ServerError(ex.Message);
+            }
+        }
+
+        // GET => /api/users => Get all the users
+        [HttpGet]
+        public async Task<IActionResult> GetUsers([FromQuery] QueryParameters queryParameters)
+        {
+            try
+            {
+                var users = await _userService.GetUsersAsync(queryParameters);
+                return ApiResponse.Success(users);
+            }
+            catch (ApplicationException ex)
+            {
+                return ApiResponse.ServerError(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception : {ex.Message}");
+                return ApiResponse.ServerError("An unexpected error occurred.");
+            }
+        }
+
+        // GET => /api/users/{userId} => Get a single user by Id
+        [HttpGet("{userId:guid}")]
+        public async Task<IActionResult> GetUser(Guid userId)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(userId);
+                if (user == null)
+                {
+                    return ApiResponse.NotFound("User not found");
+                }
+                return ApiResponse.Success(user, "User Retrived successfully");
+            }
+            catch (ApplicationException ex)
+            {
+                return ApiResponse.ServerError(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception : {ex.Message}");
+                return ApiResponse.ServerError("An unexpected error occurred.");
+            }
+        }
+
+        // DELETE => /api/users/{userId} => delete a single user by Id
+        [HttpDelete("{userId:guid}")]
+        public async Task<IActionResult> DeleteUserAccount(Guid userId)
+        {
+            try
+            {
+                bool isUserDeleted = await _userService.DeleteUserByIdAsync(userId);
+                if (!isUserDeleted)
+                {
+                    return ApiResponse.NotFound("User not found");
+                }
+                return ApiResponse.Success("null", "User Deleted successfully");
+            }
+            catch (ApplicationException ex)
+            {
+                return ApiResponse.ServerError(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception : {ex.Message}");
+                return ApiResponse.ServerError("An unexpected error occurred.");
+            }
+        }
+
+        // PUT => /api/users/{userId} => update a single user by Id
+        [HttpPut("{userId:guid}")]
+        public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] UpdateUserDto userData)
+        {
+            if (!ModelState.IsValid)
+            {
+                return ApiResponse.BadRequest("Invalid User Data");
+            }
+
+            try
+            {
+                var updatedUser = await _userService.UpdateUserByIdAsync(userId, userData);
+                if (updatedUser == null)
+                {
+                    return ApiResponse.NotFound("User with ID {userId} not found");
+                }
+                return ApiResponse.Success(updatedUser, "User Updated successfully");
+            }
+            catch (ApplicationException ex)
+            {
+                return ApiResponse.ServerError(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception : {ex.Message}");
+                return ApiResponse.ServerError("An unexpected error occurred.");
+            }
+        }
+
+    }
+}
+
+
+// Services
+```
+
+- test this endpoint
+
+```json
+{
+  "userName": "johndoe",
+  "email": "johndoe@example.com",
+  "password": "StrongPassword123!",
+  "address": "123 Main St, Springfield",
+  "image": "https://example.com/johndoe.jpg",
+  "profile": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "phoneNumber": "+1234567890",
+    "profilePictureUrl": "https://example.com/profile/johndoe.jpg",
+    "bio": "A passionate software developer and tech enthusiast.",
+    "gender": "Male",
+    "dateOfBirth": "1990-04-15",
+    "twitterHandle": "@johndoe",
+    "linkedInProfile": "https://linkedin.com/in/johndoe",
+    "occupation": "Software Engineer",
+    "websiteUrl": "https://johndoe.dev",
+    "interests": "Programming, Blogging, Traveling",
+    "location": "New York, USA"
+  }
+}
+```
+
+#### Profile CRUD operations (Working)
+
+### 7 Category and Product API
+
+#### 7.0 add this to the Program.cs
+
+```csharp
+builder.Services.AddControllers()
+ .AddJsonOptions(options =>
+ {
+     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+     options.JsonSerializerOptions.WriteIndented = true;
+ });
+```
+
+#### 7.1 Create the Category and Product Entity
 
 - Create the category and product Entity
 
@@ -2110,7 +4992,7 @@ namespace review_ecommerce_api.EFCore
 }
 ```
 
-#### 6.2 Adjust the dbcontext and create Interface for CategoryService
+#### 7.2 Adjust the dbcontext
 
 ```csharp
 using System;
@@ -2162,6 +5044,7 @@ namespace review_ecommerce_api.EFCore
                 entity.Property(p => p.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
+            // 1-Many Relationship
             modelBuilder.Entity<Category>()
             .HasMany(c => c.Products)
             .WithOne(p => p.Category)
@@ -2172,28 +5055,21 @@ namespace review_ecommerce_api.EFCore
 }
 ```
 
-- Add the migration script
+- Add and run the migration script
 
-- Interface for CategoryService
+#### Interface for the Service / Registry Pattern
 
-```csharp
-public interface ICategoryService
-  {
-      Task<PaginatedResult<CategoryDto>> GetCategoriesAsync(QueryParameters queryParameters);
-      Task<CategoryDto> CreateCategoryAsync(CreateCategory newCategory);
-      Task<CategoryDto?> GetCategoryBySlug(string slugOrId);
-      Task<bool> DeleteCategoryBySlugOrId(string slugOrId);
-      // Uncomment the method if you plan to implement category updates in the future
-      Task<CategoryDto?> UpdateCategorySlugOrIdAsync(string slugOrId, UpdateCategoryDto updateCategoryData);
-  }
-```
+- Step 1: Create the interface
+- Step 2: Use the interface in Service
+- Step 3: Add the interface as a dependency injection inside the controller
+- Step 4: Add the builder.Services.AddScoped<interface,Service>() in the startup file
 
-#### 6.3 POST => /api/categories => Create the Category
+#### 7.3 POST => /api/categories => Create the Category
 
-- create the CreateCategoryDto
+- create the CreateCategoryDto and CategoryDto
 
 ```csharp
-// Inside the Models/categories
+// Inside the DTOs/categories/CreateDto
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -2211,12 +5087,8 @@ namespace review_ecommerce_api.EFCore
 
   }
 }
-```
 
-- Create the CategoriesDto to returned the desired data after the category created
-
-```csharp
-// Inside the EFCore/Models
+// Inside the EFCore/Dtos/categories/CategoryDto.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2260,6 +5132,7 @@ namespace review_ecommerce_api.Mappers
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
 
+            // CreateMap<CreateCategory, Category>().ReverseMap(); // equivalent to the following 2 lines
             CreateMap<CreateCategory, Category>();
             CreateMap<Category, CategoryDto>();
 
@@ -2269,7 +5142,7 @@ namespace review_ecommerce_api.Mappers
 }
 ```
 
-- Create the helper method
+- Create the helper method for generating the slug
 
 ```csharp
 // helper for generating slug
@@ -2292,9 +5165,31 @@ namespace review_ecommerce_api.utilities
 }
 ```
 
-- Create the Services
+- Create the Interfaces and Services
 
 ```csharp
+public interface ICategoryService
+{
+    Task<PaginatedResult<CategoryDto>> GetCategoriesAsync(QueryParameters queryParameters);
+    Task<CategoryDto> CreateCategoryAsync(CreateCategory newCategory);
+    Task<CategoryDto?> GetCategoryBySlug(string slugOrId);
+    Task<bool> DeleteCategoryBySlugOrId(string slugOrId);
+    // Uncomment the method if you plan to implement category updates in the future
+    Task<CategoryDto?> UpdateCategorySlugOrIdAsync(string slugOrId, UpdateCategoryDto updateCategoryData);
+}
+
+ public class CategoryService : ICategoryService
+
+{
+        private readonly AppDbContext _appDbContext;
+        private readonly IMapper _mapper;
+
+        public CategoryService(AppDbContext appDbContext, IMapper mapper)
+        {
+            _appDbContext = appDbContext;
+            _mapper = mapper;
+        }
+
   public async Task<CategoryDto> CreateCategoryAsync(CreateCategory newCategory)
   {
 
@@ -2325,41 +5220,39 @@ namespace review_ecommerce_api.utilities
           throw new ApplicationException("An unexpected error occurred. Please try again later.");
       }
   }
+}
+
+// Inside the controller make sure to use ICategoryService
+// POST => /api/categories => Create a category
+[HttpPost]
+public async Task<IActionResult> CreateCategory([FromBody] CreateCategory newCategory)
+{
+    if (!ModelState.IsValid)
+    {
+        return ApiResponse.BadRequest("Invalid Category Data");
+    }
+
+    try
+    {
+        var category = await _categoryService.CreateCategoryAsync(newCategory);
+        return ApiResponse.Created(category, "Category created successfully");
+    }
+    catch (ApplicationException ex)
+    {
+        return ApiResponse.Conflict(ex.Message);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Exception : {ex.Message}");
+        return ApiResponse.ServerError(ex.Message);
+    }
+}
 ```
 
 - register the service to Program.cs
 
 ```csharp
-builder.Services.AddScoped<CategoryService>();
-```
-
-- create the controller
-
-```csharp
-// POST => /api/categories => Create a category
-  [HttpPost]
-  public async Task<IActionResult> CreateCategory([FromBody] CreateCategory newCategory)
-  {
-      if (!ModelState.IsValid)
-      {
-          return ApiResponse.BadRequest("Invalid Category Data");
-      }
-
-      try
-      {
-          var category = await _categoryService.CreateCategoryAsync(newCategory);
-          return ApiResponse.Created(category, "Category created successfully");
-      }
-      catch (ApplicationException ex)
-      {
-          return ApiResponse.Conflict(ex.Message);
-      }
-      catch (Exception ex)
-      {
-          Console.WriteLine($"Exception : {ex.Message}");
-          return ApiResponse.ServerError(ex.Message);
-      }
-  }
+builder.Services.AddScoped<ICategoryService,CategoryService>();
 ```
 
 - here is some example JSON data for creating categories:
@@ -2410,7 +5303,7 @@ Example 5: Sports & Outdoors Category
 }
 ```
 
-#### 6.4 GET => /api/categories => Get all the categories
+#### 7.4 GET => /api/categories => Get all the categories
 
 ```csharp
 
@@ -2514,7 +5407,7 @@ Example 5: Sports & Outdoors Category
 https://your-api-url.com/api/categories?sortBy=CategoryName&sortOrder=asc
 ```
 
-#### 6.5 GET => /api/categories/{slugOrId} => Get a single category by slug or id
+#### 7.5 GET => /api/categories/{slugOrId} => Get a single category by slug or id
 
 ```csharp
 // controller
@@ -2580,7 +5473,7 @@ public async Task<IActionResult> GetCategory(string slugOrId)
 
 - test this endpoint: `GET http://localhost:5109/api/categories/books`
 
-#### 6.6 Delete => /api/categories/{slug} => delete category by slug or id
+#### 7.6 Delete => /api/categories/{slug} => delete category by slug or id
 
 ```csharp
 // Controller
@@ -2646,7 +5539,7 @@ public async Task<IActionResult> DeleteCategory(string slugOrId)
   }
 ```
 
-#### 6.7 PUT => /api/categories/{slug} => update category by slug or id
+#### 7.7 PUT => /api/categories/{slug} => update category by slug or id
 
 - create an UpdatecategoryDto
 
@@ -2793,7 +5686,7 @@ namespace review_ecommerce_api.Mappers
   }
 ```
 
-#### 6.8 POST => /api/products => Create the Product
+#### 7.8 POST => /api/products => Create the Product
 
 - make sure the Product entity and dbcontext is setup
 - create the CreateProductDto and ProductDto
@@ -2883,6 +5776,61 @@ CreateMap<Product, ProductDto>();
 - Controller
 
 ```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using api.Controllers;
+using Microsoft.AspNetCore.Mvc;
+using review_ecommerce_api.Models;
+using review_ecommerce_api.Models.products;
+using review_ecommerce_api.Services;
+
+namespace review_ecommerce_api.Controllers
+{
+    [ApiController, Route("/api/products")]
+    public class ProductController : ControllerBase
+    {
+        private readonly ProductService _productService;
+        public ProductController(ProductService productService)
+        {
+            _productService = productService;
+        }
+
+        // POST => /api/products => Create a product
+        [HttpPost]
+        public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto newProduct)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                foreach (var error in errors)
+                {
+                    Console.WriteLine($"Error : {error}");
+                }
+
+                // return BadRequest(new { Message = "Invalid data", Errors = errors });
+                return ApiResponse.BadRequest("Invalid Product Data");
+            }
+
+            try
+            {
+                var product = await _productService.CreateProductAsync(newProduct);
+                return ApiResponse.Created(product, "product created successfully");
+            }
+            catch (ApplicationException ex)
+            {
+                return ApiResponse.Conflict(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception : {ex.Message}");
+                return ApiResponse.ServerError(ex.Message);
+            }
+        }
+
+    }
+}
 
 ```
 
@@ -2933,17 +5881,6 @@ CreateMap<Product, ProductDto>();
           throw new ApplicationException("An unexpected error occurred. Please try again later.");
       }
   }
-```
-
-- add json serializer in Program.cs
-
-```csharp
-builder.Services.AddControllers()
- .AddJsonOptions(options =>
- {
-     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-     options.JsonSerializerOptions.WriteIndented = true;
- });
 ```
 
 - test the endpoint with the follwing data
@@ -3077,7 +6014,7 @@ builder.Services.AddControllers()
 
   ```
 
-#### 6.9 GET => api/products => Get all the products
+#### 7.9 GET => api/products => Get all the products
 
 ```csharp
 // Controller
@@ -3170,7 +6107,7 @@ builder.Services.AddControllers()
   }
 ```
 
-#### 6.10 GET => api/products/{productId} => Get a single product
+#### 7.10 GET => api/products/{productId} => Get a single product
 
 ```csharp
 // Controller
@@ -3236,65 +6173,988 @@ public async Task<IActionResult> GetProducts(string productIdOrSlug)
 
 ```
 
-### 7 Profile API
+#### 7.11 DELETE => api/products/{productId} => Delete a single product by slugOrId (working)
 
-- define the entity
+#### 7.12 PUT => api/products/{productId} => Update a single product by slugOrId (working)
+
+### 8 Order API (1-Many Relation => Update this based on your need)
+
+- All the User EndPoints
+
+  - GET /api/users => get all users with their orders
+  - GET /api/users/{id} => get a specific users with their orders
+  - POST /api/users/ => Create a new User
+  - PUT /api/users/{id} => Update an existing User
+  - DELETE /api/users/{id} => Delete an exisiting User
+
+- All the Order EndPoints
+  - GET /api/orders => get all orders with user information
+  - GET /api/orders/{id} => get a specific orders with user information
+  - POST /api/orders => Create a new Order for a user
+  - PUT /api/orders/{id} => Update an exisiting Order
+  - DELETE /api/orders/{id} => Delete an exisiting Order
+
+#### 8.1 Create the Order Entity
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using ecommerce_db_api.EFCore;
+
+namespace ecommerce_db_api.Models.orders
+{
+    public class Order
+    {
+        public int OrderId { get; set; } // Primary Key
+        public Guid ProductId { get; set; }
+        public int Quantity { get; set; }
+        public decimal Price { get; set; }
+        public DateTime OrderDate { get; set; }
+
+        // Foreign Key
+        public int UserId { get; set; }
+
+        // Navigation Property
+        public User User { get; set; }
+    }
+}
+```
+
+#### 8.2 Make the adjustment in User and dbcontext
+
+```csharp
+ public List<Order> orders { get; set; } = new List<Order>();
+
+ // In AppDbContext
+  modelBuilder.Entity<User>()
+  .HasMany(u => u.orders)
+  .WithOne(o => o.User)
+  .HasForeignKey(o => o.UserId)
+  .OnDelete(DeleteBehavior.Cascade);
+```
+
+#### 8.3 POST => Create an Order
+
+```csharp
+// CreateOrderDto
+
+// OrderDto
+
+// Service
+
+
+// Controller
+
+```
+
+#### 8.4 Order CRUD API
+
+```csharp
+// Interface
+public interface IOrderRepository
+{
+    Task<IEnumerable<Order>> GetOrdersAsync();
+    Task<Order> GetOrderByIdAsync(Guid id);
+    Task<IEnumerable<Order>> GetOrdersByUserIdAsync(Guid userId);
+    Task CreateOrderAsync(Order order);
+    Task UpdateOrderAsync(Order order);
+    Task DeleteOrderAsync(Guid id);
+}
+
+public class OrderRepository : IOrderRepository
+{
+    private readonly OrdersDbContext _context;
+
+    public OrderRepository(OrdersDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<IEnumerable<Order>> GetOrdersAsync()
+    {
+        return await _context.Orders.Include(o => o.User).ToListAsync();
+    }
+
+    public async Task<Order> GetOrderByIdAsync(Guid id)
+    {
+        return await _context.Orders.Include(o => o.User)
+                                    .FirstOrDefaultAsync(o => o.OrderId == id);
+    }
+
+    public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(Guid userId)
+    {
+        return await _context.Orders.Where(o => o.UserId == userId)
+                                    .Include(o => o.User)
+                                    .ToListAsync();
+    }
+
+    public async Task CreateOrderAsync(Order order)
+    {
+        await _context.Orders.AddAsync(order);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateOrderAsync(Order order)
+    {
+        _context.Orders.Update(order);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteOrderAsync(Guid id)
+    {
+        var order = await _context.Orders.FindAsync(id);
+        if (order != null)
+        {
+            _context.Orders.Remove(order);
+            await _context.SaveChangesAsync();
+        }
+    }
+}
+
+[ApiController]
+[Route("api/[controller]")]
+public class OrdersController : ControllerBase
+{
+    private readonly IOrderRepository _orderRepository;
+    private readonly IUserRepository _userRepository;
+
+    public OrdersController(IOrderRepository orderRepository, IUserRepository userRepository)
+    {
+        _orderRepository = orderRepository;
+        _userRepository = userRepository;
+    }
+
+    // GET: api/orders
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+    {
+        var orders = await _orderRepository.GetOrdersAsync();
+        return Ok(orders);
+    }
+
+    // GET: api/orders/{id}
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Order>> GetOrder(int id)
+    {
+        var order = await _orderRepository.GetOrderByIdAsync(id);
+        if (order == null)
+            return NotFound();
+        return Ok(order);
+    }
+
+    // GET: api/orders/user/{userId}
+    [HttpGet("user/{userId}")]
+    public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByUser(int userId)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+            return NotFound($"User with ID {userId} not found.");
+
+        var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
+        return Ok(orders);
+    }
+
+    // POST: api/orders
+    [HttpPost]
+    public async Task<ActionResult<Order>> CreateOrder(Order order)
+    {
+        // Optionally, validate if the User exists
+        var user = await _userRepository.GetUserByIdAsync(order.UserId);
+        if (user == null)
+            return BadRequest($"User with ID {order.UserId} does not exist.");
+
+        await _orderRepository.CreateOrderAsync(order);
+        return CreatedAtAction(nameof(GetOrder), new { id = order.OrderId }, order);
+    }
+
+    // PUT: api/orders/{id}
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateOrder(int id, Order order)
+    {
+        if (id != order.OrderId)
+            return BadRequest();
+
+        // Optionally, validate if the User exists
+        var user = await _userRepository.GetUserByIdAsync(order.UserId);
+        if (user == null)
+            return BadRequest($"User with ID {order.UserId} does not exist.");
+
+        await _orderRepository.UpdateOrderAsync(order);
+        return NoContent();
+    }
+
+    // DELETE: api/orders/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteOrder(int id)
+    {
+        await _orderRepository.DeleteOrderAsync(id);
+        return NoContent();
+    }
+}
+```
+
+#### 8.5 User CRUD API
+
+Create an interface for user-related data operations.
+
+```csharp
+public interface IUserRepository
+{
+    Task<IEnumerable<User>> GetUsersAsync();
+    Task<User> GetUserByIdAsync(int id);
+    Task CreateUserAsync(User user);
+    Task UpdateUserAsync(User user);
+    Task DeleteUserAsync(int id);
+}
+```
+
+- **User Repository Implementation**
+
+Implement the `IUserRepository`.
+
+```csharp
+public class UserRepository : IUserRepository
+{
+    private readonly OrdersDbContext _context;
+
+    public UserRepository(OrdersDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<IEnumerable<User>> GetUsersAsync()
+    {
+        return await _context.Users
+                             .Include(u => u.Orders) // Eager loading orders
+                             .ToListAsync();
+    }
+
+    public async Task<User> GetUserByIdAsync(int id)
+    {
+        return await _context.Users
+                             .Include(u => u.Orders)
+                             .FirstOrDefaultAsync(u => u.UserId == id);
+    }
+
+    public async Task CreateUserAsync(User user)
+    {
+        await _context.Users.AddAsync(user);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateUserAsync(User user)
+    {
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteUserAsync(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user != null)
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+        }
+    }
+}
+// UserController
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
+{
+    private readonly IUserRepository _userRepository;
+
+    public UsersController(IUserRepository userRepository)
+    {
+        _userRepository = userRepository;
+    }
+
+    // GET: api/users
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+    {
+        var users = await _userRepository.GetUsersAsync();
+        return Ok(users);
+    }
+
+    // GET: api/users/{id}
+    [HttpGet("{id}")]
+    public async Task<ActionResult<User>> GetUser(int id)
+    {
+        var user = await _userRepository.GetUserByIdAsync(id);
+        if (user == null)
+            return NotFound();
+        return Ok(user);
+    }
+
+    // POST: api/users
+    [HttpPost]
+    public async Task<ActionResult<User>> CreateUser(User user)
+    {
+        await _userRepository.CreateUserAsync(user);
+        return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
+    }
+
+    // PUT: api/users/{id}
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateUser(int id, User user)
+    {
+        if (id != user.UserId)
+            return BadRequest();
+
+        await _userRepository.UpdateUserAsync(user);
+        return NoContent();
+    }
+
+    // DELETE: api/users/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        await _userRepository.DeleteUserAsync(id);
+        return NoContent();
+    }
+}
+```
+
+#### 8.6. Configure Services in `Program.cs` or `Startup.cs`
+
+Register both repositories and configure the `DbContext`.
+
+```csharp
+public class Startup
+{
+    public IConfiguration Configuration { get; }
+
+    public Startup(IConfiguration configuration)
+    {
+        Configuration = configuration;
+    }
+
+    // This method gets called by the runtime. Use this method to add services to the container.
+    public void ConfigureServices(IServiceCollection services)
+    {
+        // Configure DbContext with SQL Server
+        services.AddDbContext<OrdersDbContext>(options =>
+            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+        // Register repositories
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+
+        services.AddControllers();
+
+        // (Optional) Add Swagger for API documentation
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+
+            // (Optional) Enable Swagger in development
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        app.UseRouting();
+
+        app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+        });
+    }
+}
+```
+
+#### 8.7 Update Database with Migrations
+
+After updating the models and `DbContext`, create and apply migrations to update the database schema.
+
+```bash
+# Install Entity Framework CLI tools if not already installed
+dotnet tool install --global dotnet-ef
+
+# Add a new migration
+dotnet ef migrations add AddUserAndOrderRelationship
+
+# Apply the migration to update the database
+dotnet ef database update
+```
+
+---
+
+#### 8.8 Testing the API
+
+- **Example JSON for Creating a User:**
+
+```json
+POST /api/users
+Content-Type: application/json
+
+{
+    "username": "john_doe",
+    "email": "john.doe@example.com"
+}
+```
+
+- Example JSON for Creating an Order:\*\*
+
+```json
+POST /api/orders
+Content-Type: application/json
+
+{
+    "productId": "11111",
+    "quantity": 1,
+    "price": 1200.00,
+    "orderDate": "2024-10-01T10:00:00Z",
+    "userId": 1
+}
+```
+
+#### 8.9 Additional Considerations
+
+#### **Validation**
+
+Implement data validation to ensure that inputs are correct. You can use data annotations in your models or implement Fluent Validation.
+
+**Example with Data Annotations:**
 
 ```csharp
 public class User
 {
-    public Guid UserId { get; set; }
-    // ....
+    public int UserId { get; set; }
 
-    // Navigation property
-    public Profile Profile { get; set; }
+    [Required]
+    [StringLength(50)]
+    public string Username { get; set; }
+
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; }
+
+    public ICollection<Order> Orders { get; set; }
 }
 
-public class Profile
+public class Order
 {
-    public Guid Id { get; set; }
-    // public string Address { get; set; }
-    public string PhoneNumber { get; set; }
+    public int OrderId { get; set; }
 
-    // Foreign key
-    public Guid UserId { get; set; }
+    [Required]
+    public string ProductName { get; set; }
 
-    // Navigation property
+    [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]
+    public int Quantity { get; set; }
+
+    [Range(0.01, double.MaxValue, ErrorMessage = "Price must be positive")]
+    public decimal Price { get; set; }
+
+    public DateTime OrderDate { get; set; }
+
+    // Foreign Key
+    [Required]
+    public int UserId { get; set; }
+
     public User User { get; set; }
 }
 ```
 
-- update the context
+#### **DTOs (Data Transfer Objects)**
+
+For better separation of concerns and to avoid exposing internal models, consider using DTOs.
+
+**Example:**
+
+```csharp
+public class UserDto
+{
+    public int UserId { get; set; }
+    public string Username { get; set; }
+    public string Email { get; set; }
+    public IEnumerable<OrderDto> Orders { get; set; }
+}
+
+public class OrderDto
+{
+    public int OrderId { get; set; }
+    public string ProductName { get; set; }
+    public int Quantity { get; set; }
+    public decimal Price { get; set; }
+    public DateTime OrderDate { get; set; }
+}
+```
+
+#### Implement mapping between entities and DTOs using libraries like AutoMapper.
+
+#### **Authentication & Authorization**
+
+To ensure that users can only access their own orders, implement authentication (e.g., JWT) and authorization mechanisms.
+
+#### **Error Handling**
+
+Implement global error handling to manage exceptions gracefully and provide meaningful error messages.
+
+#### **Logging**
+
+Incorporate logging to monitor the application's behavior and troubleshoot issues.
+
+---
+
+By following the steps above, you establish a robust relationship between **Users** and **Orders** in your ASP.NET Core API, enabling comprehensive CRUD operations that reflect real-world scenarios.
+
+### 9 Order<=>Product (Many-Many Relationship)
+
+- Target CRUD Operations Summary:
+
+  - POST: /api/orders — Create a new order.
+  - GET: /api/orders/{id} — Get a specific order by ID.
+  - PUT: /api/orders/{id} — Update an existing order by ID.
+  - DELETE: /api/orders/{id} — Delete an order by ID.
+  - GET: /api/orders — (Optional) Retrieve all orders.
+
+- Many-to-many relationship between Order and Product, where an order can contain multiple products, and a product can appear in multiple orders.
+
+To achieve this, you need to create a join table (also called a linking entity) between Order and Product that holds the quantity and price for each product in the order. This join table is typically called something like OrderProduct.
+
+### 9.1 Creating Entities
+
+```csharp
+// Order Entity
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ecommerce_db_api.EFCore
+{
+    public class Order
+    {
+        public Guid OrderId { get; set; }
+        public DateTime OrderDate { get; set; }
+
+        public Guid UserId { get; set; } // foregin id for the User
+        public User User { get; set; } // reference for the User Entity
+
+        public ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();  // Collection of products in the order
+    }
+}
+
+// Product Entity
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+
+namespace ecommerce_db_api.EFCore
+{
+    public class Product
+    {
+        public Guid ProductId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Image { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public int Quantity { get; set; } = 0;
+        public int Sold { get; set; } = 0;
+        public decimal Shipping { get; set; } = 0;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public Guid CategoryId { get; set; }  // Foreign Key for the Category
+
+        [JsonIgnore]
+        public Category? Category { get; set; }
+
+        public ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();  // Many-to-Many relationship with orders
+    }
+}
+
+// OrderProduct Entity
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ecommerce_db_api.EFCore
+{
+    public class OrderProduct
+    {
+        public Guid OrderId { get; set; }
+        public Order Order { get; set; }  // Navigation property
+
+        public Guid ProductId { get; set; }
+        public Product Product { get; set; }  // Navigation property
+
+        public int Quantity { get; set; }  // Quantity of this product in the order
+        public decimal Price { get; set; }  // Price of this product in the order
+    }
+}
+
+```
+
+### 9.2 Testing with some data
+
+```json
+{
+  "userId": "b1a1b1e1-c1c1-11eb-b8bc-0242ac130003",
+  "orderDate": "2024-09-30T00:00:00Z",
+  "orderProducts": [
+    {
+      "productId": "d1a1d1f1-c1c1-11eb-b8bc-0242ac130003",
+      "quantity": 2,
+      "price": 100.0
+    },
+    {
+      "productId": "e1a1e1f1-c1c1-11eb-b8bc-0242ac130003",
+      "quantity": 1,
+      "price": 200.0
+    }
+  ]
+}
+```
+
+### 9.3 Create DTO's
+
+- Represents the order data, including user and product details
 
 ```csharp
 
-// DbSet properties
+public class OrderProductDto
+{
+    public Guid ProductId { get; set; }
+    public int Quantity { get; set; }
+    public decimal Price { get; set; }
+}
 
-public DbSet<Profile> Profiles { get; set; }
-
-    // One-to-One: User <-> Profile
-    modelBuilder.Entity<User>()
-        .HasOne(u => u.Profile)
-        .WithOne(p => p.User)
-        .HasForeignKey<Profile>(p => p.UserId);
+public class OrderDto
+{
+    public Guid OrderId { get; set; }
+    public DateTime OrderDate { get; set; }
+    public Guid UserId { get; set; }
+    public List<OrderProductDto> OrderProducts { get; set; } = new List<OrderProductDto>();
+}
 ```
 
-#### Get Profile
+- Represents the input data required to create a new order
 
-#### Create Profile
+```csharp
+public class CreateOrderProductDto
+{
+    public Guid ProductId { get; set; }
+    public int Quantity { get; set; }
+    public decimal Price { get; set; }
+}
 
-#### Delete Profile
-
-#### Update Profile
-
-### 8 Order API
-
-### (ADD SOMEWHERE) try to insert data in pgadmin
-
-```sql
-INSERT INTO "Users" ("UserId", "Name", "Email", "Password", "Address", "Image", "IsAdmin", "IsBanned", "CreatedAt")
-VALUES
-    ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'John Doe', 'john@example.com', 'password123', '123 Main St', 'john.jpg', false, false, '2024-04-30 12:00:00'::timestamp),
-
-    ('b6e9f696-6dbb-49b2-bb55-19c13c8e1701', 'Jane Smith', 'jane@example.com', 'password456', '456 Elm St', 'jane.jpg', true, false, '2024-04-30 13:00:00'::timestamp);
+public class CreateOrderDto
+{
+    public Guid UserId { get; set; }
+    public List<CreateOrderProductDto> OrderProducts { get; set; } = new List<CreateOrderProductDto>();
+}
 ```
+
+### 9.4 Setup the context for many-many realtionship
+
+```csharp
+// Many-to-Many relationship between Order and Product using OrderProduct as join table
+  modelBuilder.Entity<OrderProduct>()
+      .HasKey(op => new { op.OrderId, op.ProductId });  // Composite primary key
+
+  modelBuilder.Entity<OrderProduct>()
+      .HasOne(op => op.Order)
+      .WithMany(o => o.OrderProducts)
+      .HasForeignKey(op => op.OrderId);
+
+  modelBuilder.Entity<OrderProduct>()
+      .HasOne(op => op.Product)
+      .WithMany(p => p.OrderProducts)
+      .HasForeignKey(op => op.ProductId);
+```
+
+### 9.5 Setup the IOrderSevice
+
+```csharp
+ public interface IOrderService
+{
+    Task<OrderDto> CreateOrderAsync(CreateOrderDto createOrderDto);
+    Task<OrderDto?> GetOrderByIdAsync(Guid orderId);
+    Task<OrderDto?> UpdateOrderAsync(Guid orderId, CreateOrderDto updateOrderDto);
+    Task<bool> DeleteOrderByIdAsync(Guid orderId);
+}
+```
+
+### 9.6 Setup the Order Service
+
+```csharp
+public class OrderService
+{
+    private readonly AppDbContext _appDbContext;
+    private readonly IMapper _mapper;
+
+    public OrderService(AppDbContext appDbContext, IMapper mapper)
+    {
+        _appDbContext = appDbContext;
+        _mapper = mapper;
+    }
+
+    // Create a new order
+    public async Task<OrderDto> CreateOrderAsync(CreateOrderDto createOrderDto)
+    {
+        var order = new Order
+        {
+            UserId = createOrderDto.UserId,
+            OrderDate = DateTime.UtcNow
+        };
+
+        foreach (var orderProductDto in createOrderDto.OrderProducts)
+        {
+            var orderProduct = new OrderProduct
+            {
+                ProductId = orderProductDto.ProductId,
+                Quantity = orderProductDto.Quantity,
+                Price = orderProductDto.Price
+            };
+
+            order.OrderProducts.Add(orderProduct);
+        }
+
+        await _appDbContext.Orders.AddAsync(order);
+        await _appDbContext.SaveChangesAsync();
+
+        var orderDto = _mapper.Map<OrderDto>(order);
+        return orderDto;
+    }
+
+    // Get order by ID
+    public async Task<OrderDto?> GetOrderByIdAsync(Guid orderId)
+    {
+       var order = await _appDbContext.Orders
+        .Include(o => o.OrderProducts)
+        .ThenInclude(op => op.Product)  // Include Product details
+        .Include(o => o.User)  // Include User details
+        .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+        if (order == null)
+            return null;
+
+        return _mapper.Map<OrderDto>(order);
+    }
+
+    // Update an order
+    public async Task<OrderDto?> UpdateOrderAsync(Guid orderId, CreateOrderDto updateOrderDto)
+    {
+        var order = await _appDbContext.Orders
+            .Include(o => o.OrderProducts)
+            .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+        if (order == null)
+            return null;
+
+        // Clear existing products and add updated products
+        order.OrderProducts.Clear();
+        foreach (var orderProductDto in updateOrderDto.OrderProducts)
+        {
+            var orderProduct = new OrderProduct
+            {
+                ProductId = orderProductDto.ProductId,
+                Quantity = orderProductDto.Quantity,
+                Price = orderProductDto.Price
+            };
+
+            order.OrderProducts.Add(orderProduct);
+        }
+
+        _appDbContext.Orders.Update(order);
+        await _appDbContext.SaveChangesAsync();
+
+        return _mapper.Map<OrderDto>(order);
+    }
+
+    // Delete an order by ID
+    public async Task<bool> DeleteOrderByIdAsync(Guid orderId)
+    {
+        var order = await _appDbContext.Orders
+            .Include(o => o.OrderProducts)
+            .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+        if (order == null)
+            return false;
+
+        _appDbContext.Orders.Remove(order);
+        await _appDbContext.SaveChangesAsync();
+        return true;
+    }
+}
+
+```
+
+### 9.7 Setup the Order Controller
+
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class OrderController : ControllerBase
+{
+    private readonly OrderService _orderService;
+
+    public OrderController(OrderService orderService)
+    {
+        _orderService = orderService;
+    }
+
+    // POST: /api/orders
+    [HttpPost]
+    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto createOrderDto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var order = await _orderService.CreateOrderAsync(createOrderDto);
+        return CreatedAtAction(nameof(GetOrder), new { id = order.OrderId }, order);
+    }
+
+    // GET: /api/orders/{id}
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetOrder(Guid id)
+    {
+        var order = await _orderService.GetOrderByIdAsync(id);
+        if (order == null)
+            return NotFound();
+
+        return Ok(order);
+    }
+
+    // PUT: /api/orders/{id}
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] CreateOrderDto updateOrderDto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var updatedOrder = await _orderService.UpdateOrderAsync(id, updateOrderDto);
+        if (updatedOrder == null)
+            return NotFound();
+
+        return Ok(updatedOrder);
+    }
+
+    // DELETE: /api/orders/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteOrder(Guid id)
+    {
+        var result = await _orderService.DeleteOrderByIdAsync(id);
+        if (!result)
+            return NotFound();
+
+        return NoContent();
+    }
+}
+```
+
+### 9.8 Add Enum for OrderStatus
+
+Here are the codes for implementing the `OrderStatus` enum in your project:
+
+##### **1. Define the Enum**
+
+```csharp
+public enum OrderStatus
+{
+    Pending = 0,
+    Confirmed = 1,
+    Shipped = 2,
+    Delivered = 3,
+    Cancelled = 4
+}
+```
+
+##### **2. Update the Order Model**
+
+```csharp
+public class Order
+{
+    public Guid OrderId { get; set; }
+    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+
+    public Guid UserId { get; set; }
+    public User User { get; set; }
+
+    public ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
+
+    public OrderStatus Status { get; set; } = OrderStatus.Pending;  // Default to Pending
+}
+```
+
+##### **3. Update DTOs**
+
+```csharp
+public class OrderDto
+{
+    public Guid OrderId { get; set; }
+    public DateTime OrderDate { get; set; }
+    public UserDto User { get; set; }
+    public List<OrderProductDto> OrderProducts { get; set; } = new List<OrderProductDto>();
+    public OrderStatus Status { get; set; }
+}
+
+public class CreateOrderDto
+{
+    public Guid UserId { get; set; }
+    public List<CreateOrderProductDto> OrderProducts { get; set; } = new List<CreateOrderProductDto>();
+    public OrderStatus Status { get; set; } = OrderStatus.Pending;
+}
+```
+
+##### **4. Update Mapping Profile**
+
+```csharp
+public class MappingProfile : Profile
+{
+    public MappingProfile()
+    {
+        CreateMap<Order, OrderDto>();
+        CreateMap<CreateOrderDto, Order>();
+        CreateMap<User, UserDto>();
+        CreateMap<OrderProduct, OrderProductDto>();
+        CreateMap<Product, ProductDto>();
+    }
+}
+```
+
+##### **5. Sample Controller Update**
+
+```csharp
+[HttpPut("{id}/status")]
+public async Task<IActionResult> UpdateOrderStatus(Guid id, [FromBody] OrderStatus status)
+{
+    var result = await _orderService.UpdateOrderStatusAsync(id, status);
+    if (!result)
+        return NotFound();
+
+    return NoContent();
+}
+```
+
+##### **6. Update Service for Status**
+
+```csharp
+public async Task<bool> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus)
+{
+    var order = await _appDbContext.Orders.FindAsync(orderId);
+    if (order == null) return false;
+
+    order.Status = newStatus;
+    await _appDbContext.SaveChangesAsync();
+    return true;
+}
+```
+
+These are the necessary code changes for adding the `OrderStatus` enum to your project.
